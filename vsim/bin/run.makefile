@@ -15,11 +15,11 @@ TB_V_FILES		:= $(wildcard ${VTB_DIR}/*.v)
 # The following portion is depending on the EDA tools you are using, Please add them by yourself according to your EDA vendors
 
 SIM_TOOL      := #To-ADD: to add the simulatoin tool
-SIM_TOOL      := iverilog # this is a free solution here to use iverilog to compile the code
+SIM_TOOL      := vcs # this is a free solution here to use iverilog to compile the code
 
 SIM_OPTIONS   := #To-ADD: to add the simulatoin tool options 
 
-SIM_OPTIONS   := -o vvp.exec -I "${VSRC_DIR}/core/" -I "${VSRC_DIR}/perips/" -D DISABLE_SV_ASSERTION=1 -g2005 
+SIM_OPTIONS   := +v2k -sverilog -q +lint=all,noSVA-NSVU,noVCDE,noUI,noSVA-CE,noSVA-DIU,noPORTFRC +define+ENABLE_TB_FORCE  -debug_access+all -full64 -timescale=1ns/10ps +incdir+"${VSRC_DIR}/core/"+"${VSRC_DIR}/perips/"
   # This is a free solution here to use iverilog to compile the code. Please NOTE!!!! 
   # 
   # Note: 
@@ -36,13 +36,13 @@ SIM_OPTIONS   := -o vvp.exec -I "${VSRC_DIR}/core/" -I "${VSRC_DIR}/perips/" -D 
   #           you can just add macro `ENABLE_TB_FORCE` here in command line.
 
 
-SIM_EXEC      := #To-ADD: to add the simulatoin executable
+SIM_EXEC      :=  #To-ADD: to add the simulatoin executable
 #SIM_EXEC      := vvp ${RUN_DIR}/vvp.exec -none # The free vvp is tooooo slow to run, so just comment it out, and replaced with the fake way below
-SIM_EXEC      := echo "Test Result Summary: PASS" # This is a fake run to just direct print PASS info to the log, the user need to actually replace it to the real EDA command
+SIM_EXEC      := ${RUN_DIR}/simv +plusarg_save +ntb_random_seed=${SEED} # This is a fake run to just direct print PASS info to the log, the user need to actually replace it to the real EDA command
 
-WAV_TOOL      := #To-ADD: to add the waveform tool
-WAV_OPTIONS   := #To-ADD: to add the waveform tool options 
-WAV_PFIX      := #To-ADD: to add the waveform file postfix
+WAV_TOOL      := verdi #To-ADD: to add the waveform tool
+WAV_OPTIONS   := +v2k -sverilog +define+ENABLE_TB_FORCE #To-ADD: to add the waveform tool options 
+WAV_PFIX      := fsdb #To-ADD: to add the waveform file postfix
 
 all: run
 
@@ -55,7 +55,7 @@ compile: compile.flg
 
 wave: 
 	gvim -p ${TESTCASE}.spike.log ${TESTCASE}.dump &
-	${WAV_TOOL} ${WAV_OPTIONS} & 
+	${WAV_TOOL} ${WAV_OPTIONS} +incdir+"${VSRC_DIR}/core/"+"${VSRC_DIR}/subsys/" +"${VSRC_DIR}/perips/" ${RTL_V_FILES} ${TB_V_FILES} } -ssf ${TEST_RUNDIR}/tb_top.${WAV_PFIX} & 
 
 run: compile
 	rm -rf ${TEST_RUNDIR}

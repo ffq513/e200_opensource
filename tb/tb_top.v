@@ -238,18 +238,17 @@ module tb_top();
   end
 
 
+  
+  
+  integer dumpwave;
 
-  
-  
   initial begin
     $value$plusargs("DUMPWAVE=%d",dumpwave);
     if(dumpwave != 0)begin
-         // To add your waveform generation function
+      $fsdbDumpfile("tb_top.fsdb");
+      $fsdbDumpvars(0, tb_top, "+mda");
     end
   end
-
-
-
 
 
   integer i;
