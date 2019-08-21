@@ -87,7 +87,7 @@ Disassembly of section .text.init:
 800000e2:	f2250513          	addi	a0,a0,-222 # 80002000 <test_trap_data>
 800000e6:	00052f03          	lw	t5,0(a0)
 800000ea:	00452f83          	lw	t6,4(a0)
-800000ee:	34302573          	csrr	a0,mbadaddr
+800000ee:	34302573          	csrr	a0,mtval
 800000f2:	34002573          	csrr	a0,mscratch
 800000f6:	30200073          	mret
 
@@ -96,7 +96,7 @@ Disassembly of section .text.init:
 800000fe:	f0650513          	addi	a0,a0,-250 # 80002000 <test_trap_data>
 80000102:	00052f03          	lw	t5,0(a0)
 80000106:	00452f83          	lw	t6,4(a0)
-8000010a:	34302573          	csrr	a0,mbadaddr
+8000010a:	34302573          	csrr	a0,mtval
 8000010e:	34002573          	csrr	a0,mscratch
 80000112:	30200073          	mret
 
@@ -105,7 +105,7 @@ Disassembly of section .text.init:
 8000011a:	eea50513          	addi	a0,a0,-278 # 80002000 <test_trap_data>
 8000011e:	00052f03          	lw	t5,0(a0)
 80000122:	00452f83          	lw	t6,4(a0)
-80000126:	34302573          	csrr	a0,mbadaddr
+80000126:	34302573          	csrr	a0,mtval
 8000012a:	34002573          	csrr	a0,mscratch
 8000012e:	30200073          	mret
 
@@ -206,7 +206,7 @@ Disassembly of section .text.init:
 8000026a:	4585                	li	a1,1
 8000026c:	00b5262f          	amoadd.w	a2,a1,(a0)
 80000270:	4685                	li	a3,1
-80000272:	fed67fe3          	bleu	a3,a2,80000270 <waitloop4+0x4e>
+80000272:	fed67fe3          	bgeu	a2,a3,80000270 <waitloop4+0x4e>
 80000276:	410c                	lw	a1,0(a0)
 80000278:	fed5efe3          	bltu	a1,a3,80000276 <waitloop4+0x54>
 
