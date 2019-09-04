@@ -535,15 +535,13 @@ Disassembly of section .data:
 80002008:	cccd                	beqz	s1,800020c2 <test_15_data+0xa>
 8000200a:	bf8c                	fsd	fa1,56(a5)
 	...
-80002014:	ffff                	0xffff
-80002016:	ffff                	0xffff
+80002014:	ffffffff          	0xffffffff
 
 80002018 <test_3_data>:
 80002018:	0000                	unimp
 8000201a:	bf80                	fsd	fs0,56(a5)
 	...
-80002024:	ffff                	0xffff
-80002026:	ffff                	0xffff
+80002024:	ffffffff          	0xffffffff
 
 80002028 <test_4_data>:
 80002028:	6666                	flw	fa2,88(sp)
@@ -580,8 +578,7 @@ Disassembly of section .data:
 80002078:	d05e                	sw	s7,32(sp)
 8000207a:	4f32                	lw	t5,12(sp)
 	...
-80002084:	ffff                	0xffff
-80002086:	7fff                	0x7fff
+80002084:	7fffffff          	0x7fffffff
 
 80002088 <test_12_data>:
 80002088:	0000                	unimp
@@ -631,24 +628,18 @@ Disassembly of section .data:
 	...
 
 80002110 <begin_signature>:
-80002110:	ffff                	0xffff
-80002112:	ffff                	0xffff
-80002114:	ffff                	0xffff
-80002116:	7fff                	0x7fff
+80002110:	ffffffff          	0xffffffff
+80002114:	7fffffff          	0x7fffffff
 80002118:	0000                	unimp
 8000211a:	ff80                	fsw	fs0,56(a5)
 8000211c:	0000                	unimp
 8000211e:	7f80                	flw	fs0,56(a5)
 
 80002120 <tdat_d>:
-80002120:	ffff                	0xffff
-80002122:	ffff                	0xffff
-80002124:	ffff                	0xffff
-80002126:	ffff                	0xffff
-80002128:	ffff                	0xffff
-8000212a:	ffff                	0xffff
-8000212c:	ffff                	0xffff
-8000212e:	7fff                	0x7fff
+80002120:	ffffffff          	0xffffffff
+80002124:	ffffffff          	0xffffffff
+80002128:	ffffffff          	0xffffffff
+8000212c:	7fffffff          	0x7fffffff
 80002130:	0000                	unimp
 80002132:	0000                	unimp
 80002134:	0000                	unimp
@@ -657,3 +648,27 @@ Disassembly of section .data:
 8000213a:	0000                	unimp
 8000213c:	0000                	unimp
 8000213e:	7ff0                	flw	fa2,124(a5)
+
+Disassembly of section .riscv.attributes:
+
+00000000 <.riscv.attributes>:
+   0:	3241                	jal	fffff980 <_end+0x7fffd840>
+   2:	0000                	unimp
+   4:	7200                	flw	fs0,32(a2)
+   6:	7369                	lui	t1,0xffffa
+   8:	01007663          	bgeu	zero,a6,14 <_start-0x7fffffec>
+   c:	0028                	addi	a0,sp,8
+   e:	0000                	unimp
+  10:	7205                	lui	tp,0xfffe1
+  12:	3376                	fld	ft6,376(sp)
+  14:	6932                	flw	fs2,12(sp)
+  16:	7032                	flw	ft0,44(sp)
+  18:	5f30                	lw	a2,120(a4)
+  1a:	326d                	jal	fffff9c4 <_end+0x7fffd884>
+  1c:	3070                	fld	fa2,224(s0)
+  1e:	615f 7032 5f30      	0x5f307032615f
+  24:	3266                	fld	ft4,120(sp)
+  26:	3070                	fld	fa2,224(s0)
+  28:	645f 7032 5f30      	0x5f307032645f
+  2e:	30703263          	0x30703263
+	...

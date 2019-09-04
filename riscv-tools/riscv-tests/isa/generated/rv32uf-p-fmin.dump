@@ -529,8 +529,7 @@ Disassembly of section .data:
 80002034:	c49a6333          	0xc49a6333
 
 80002038 <test_5_data>:
-80002038:	ffff                	0xffff
-8000203a:	7fff                	0x7fff
+80002038:	7fffffff          	0x7fffffff
 8000203c:	c49a6333          	0xc49a6333
 80002040:	0000                	unimp
 80002042:	0000                	unimp
@@ -582,8 +581,7 @@ Disassembly of section .data:
 80002096:	3f8c                	fld	fa1,56(a5)
 
 80002098 <test_15_data>:
-80002098:	ffff                	0xffff
-8000209a:	7fff                	0x7fff
+80002098:	7fffffff          	0x7fffffff
 8000209c:	c49a6333          	0xc49a6333
 800020a0:	0000                	unimp
 800020a2:	0000                	unimp
@@ -617,10 +615,8 @@ Disassembly of section .data:
 800020d6:	3f80                	fld	fs0,56(a5)
 
 800020d8 <test_21_data>:
-800020d8:	ffff                	0xffff
-800020da:	7fff                	0x7fff
-800020dc:	ffff                	0xffff
-800020de:	7fff                	0x7fff
+800020d8:	7fffffff          	0x7fffffff
+800020dc:	7fffffff          	0x7fffffff
 800020e0:	0000                	unimp
 800020e2:	0000                	unimp
 800020e4:	0000                	unimp
@@ -653,4 +649,28 @@ Disassembly of section .data:
 8000211a:	0000                	unimp
 8000211c:	0000                	unimp
 8000211e:	8000                	0x8000
+	...
+
+Disassembly of section .riscv.attributes:
+
+00000000 <.riscv.attributes>:
+   0:	3241                	jal	fffff980 <_end+0x7fffd850>
+   2:	0000                	unimp
+   4:	7200                	flw	fs0,32(a2)
+   6:	7369                	lui	t1,0xffffa
+   8:	01007663          	bgeu	zero,a6,14 <_start-0x7fffffec>
+   c:	0028                	addi	a0,sp,8
+   e:	0000                	unimp
+  10:	7205                	lui	tp,0xfffe1
+  12:	3376                	fld	ft6,376(sp)
+  14:	6932                	flw	fs2,12(sp)
+  16:	7032                	flw	ft0,44(sp)
+  18:	5f30                	lw	a2,120(a4)
+  1a:	326d                	jal	fffff9c4 <_end+0x7fffd894>
+  1c:	3070                	fld	fa2,224(s0)
+  1e:	615f 7032 5f30      	0x5f307032615f
+  24:	3266                	fld	ft4,120(sp)
+  26:	3070                	fld	fa2,224(s0)
+  28:	645f 7032 5f30      	0x5f307032645f
+  2e:	30703263          	0x30703263
 	...

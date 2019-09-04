@@ -335,10 +335,8 @@ Disassembly of section .data:
 80002016:	bff0                	fsd	fa2,248(a5)
 
 80002018 <test_4_data>:
-80002018:	ffff                	0xffff
-8000201a:	ffff                	0xffff
-8000201c:	ffff                	0xffff
-8000201e:	          	0x800f
+80002018:	ffffffff          	0xffffffff
+8000201c:	800fffff          	0x800fffff
 
 80002020 <test_5_data>:
 80002020:	0000                	unimp
@@ -350,10 +348,8 @@ Disassembly of section .data:
 	...
 
 80002030 <test_7_data>:
-80002030:	ffff                	0xffff
-80002032:	ffff                	0xffff
-80002034:	ffff                	0xffff
-80002036:	          	fence	unknown,unknown
+80002030:	ffffffff          	0xffffffff
+80002034:	000fffff          	0xfffff
 
 80002038 <test_8_data>:
 80002038:	0000                	unimp
@@ -378,4 +374,28 @@ Disassembly of section .data:
 80002052:	0000                	unimp
 80002054:	0000                	unimp
 80002056:	7ff8                	flw	fa4,124(a5)
+	...
+
+Disassembly of section .riscv.attributes:
+
+00000000 <.riscv.attributes>:
+   0:	3241                	jal	fffff980 <_end+0x7fffd920>
+   2:	0000                	unimp
+   4:	7200                	flw	fs0,32(a2)
+   6:	7369                	lui	t1,0xffffa
+   8:	01007663          	bgeu	zero,a6,14 <_start-0x7fffffec>
+   c:	0028                	addi	a0,sp,8
+   e:	0000                	unimp
+  10:	7205                	lui	tp,0xfffe1
+  12:	3376                	fld	ft6,376(sp)
+  14:	6932                	flw	fs2,12(sp)
+  16:	7032                	flw	ft0,44(sp)
+  18:	5f30                	lw	a2,120(a4)
+  1a:	326d                	jal	fffff9c4 <_end+0x7fffd964>
+  1c:	3070                	fld	fa2,224(s0)
+  1e:	615f 7032 5f30      	0x5f307032615f
+  24:	3266                	fld	ft4,120(sp)
+  26:	3070                	fld	fa2,224(s0)
+  28:	645f 7032 5f30      	0x5f307032645f
+  2e:	30703263          	0x30703263
 	...
