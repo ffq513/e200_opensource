@@ -222,7 +222,7 @@ module tb_top();
   end
 
   initial begin
-    #40000000
+    #80000000
         $display("Time Out !!!");
      $finish;
   end
@@ -237,10 +237,6 @@ module tb_top();
      #33 lfextclk <= ~lfextclk;
   end
 
-
-  
-  
-  integer dumpwave;
 
   initial begin
     $value$plusargs("DUMPWAVE=%d",dumpwave);
