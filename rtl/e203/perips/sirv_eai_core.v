@@ -1,14 +1,19 @@
+ /*                                                                      
+ Copyright 2018 Nuclei System Technology, Inc.                
+                                                                         
+ Licensed under the Apache License, Version 2.0 (the "License");         
+ you may not use this file except in compliance with the License.        
+ You may obtain a copy of the License at                                 
+                                                                         
+     http://www.apache.org/licenses/LICENSE-2.0                          
+                                                                         
+  Unless required by applicable law or agreed to in writing, software    
+ distributed under the License is distributed on an "AS IS" BASIS,       
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and     
+ limitations under the License.                                          
+ */
 
-//=====================================================================
-//
-//--  #     # #     #  #####  #       #######   ###
-//--  ##    # #     # #     # #       #          #
-//--  # #   # #     # #       #       #          #
-//--  #  #  # #     # #       #       #####      #
-//--  #   # # #     # #       #       #          #
-//--  #    ## #     # #     # #       #          #
-//--  #     #  #####   #####  ####### #######   ###
-//
 //=====================================================================
 //
 // Designer   : zaixin
@@ -265,6 +270,8 @@ module sirv_eai_core (
    sirv_gnrl_dfflr #(32) matrix_size_dfflr (matrix_size_ena, matrix_size_nxt, matrix_size_r, eai_clk, eai_rst_n);
 
    //==================custom0_jj_loop start===========================//
+   //
+   wire store_im_out;
    wire [`E203_ADDR_SIZE-1:0] in_row ;
    wire [`E203_ADDR_SIZE-1:0] in_col ;
    wire in_row_is_not_negative = (in_row >= 0);
@@ -280,9 +287,17 @@ module sirv_eai_core (
    wire [`E203_ADDR_SIZE-1:0] cnt_l_r;
    wire [`E203_ADDR_SIZE-1:0] cnt_l_max = ch_im_in_r - 32'b1;
    wire cnt_l_loop = (cnt_l_r < cnt_l_max);
-   wire cnt_l_end = (cnt_l_r == cnt_l_max);  
+   wire cnt_l_end =  (cnt_l_r == cnt_l_max);  
    wire [`E203_ADDR_SIZE-1:0] cnt_l_nxt = (cnt_l_loop) ? cnt_l_r + 1'b1 : 32'b0;
-   wire cnt_l_ena = state_is_jj_loop & ( cnt_l_end | cnt_l_start & cnt_l_loop );
+
+   wire [1:0] cnt_load_dat_r;
+   wire load_dat_end = (cnt_load_dat_r == 2'b1);
+   wire cnt_load_dat_ena = state_is_jj_loop & cnt_l_start & (~store_im_out);
+   wire [1:0] cnt_load_dat_nxt = (load_dat_end) ? 2'b0 : cnt_load_dat_r + 2'b1;
+   sirv_gnrl_dfflr #(2) cnt_load_dat_dfflr (cnt_load_dat_ena, cnt_load_dat_nxt, cnt_load_dat_r, eai_clk, eai_rst_n);
+
+   wire load_dat_fi = load_dat_end & (~store_im_out);
+   wire cnt_l_ena = state_is_jj_loop & ( cnt_l_end | cnt_l_start & cnt_l_loop ) & load_dat_fi;
    sirv_gnrl_dfflr #(`E203_ADDR_SIZE) cnt_l_dfflr (cnt_l_ena, cnt_l_nxt, cnt_l_r, eai_clk, eai_rst_n);
 
    wire [`E203_ADDR_SIZE-1:0] cnt_n_r;
@@ -290,45 +305,187 @@ module sirv_eai_core (
    wire cnt_n_loop = (cnt_n_r <  cnt_n_max);
    wire cnt_n_end =  (cnt_n_r == cnt_n_max);
    wire [`E203_ADDR_SIZE-1:0] cnt_n_nxt = (cnt_n_loop) ? cnt_n_r + 1'b1 : 32'b0;
-   wire cnt_n_ena = state_is_jj_loop & (cnt_l_end | ~(cnt_l_start));
+   wire cnt_n_ena = state_is_jj_loop & (cnt_l_end & cnt_l_start & load_dat_fi | ~(cnt_l_start));
    sirv_gnrl_dfflr #(`E203_ADDR_SIZE) cnt_n_dfflr (cnt_n_ena, cnt_n_nxt, cnt_n_r, eai_clk, eai_rst_n);
 
    wire [`E203_ADDR_SIZE-1:0] cnt_m_r;
    wire [`E203_ADDR_SIZE-1:0] cnt_m_max = cnt_n_max;
    wire cnt_m_loop = (cnt_m_r < cnt_m_max);
    wire cnt_m_end = (cnt_m_r == cnt_m_max);
+   wire cnt_nl_end = (cnt_n_end & cnt_l_end & cnt_l_start & load_dat_fi ) | cnt_n_end & (~cnt_l_start);
    wire [`E203_ADDR_SIZE-1:0] cnt_m_nxt = (cnt_m_loop) ? cnt_m_r + 1'b1 : 32'b0;
-   wire cnt_m_ena = state_is_jj_loop & cnt_n_end  ;
+   wire cnt_m_ena = state_is_jj_loop & cnt_nl_end ;
    sirv_gnrl_dfflr #(`E203_ADDR_SIZE) cnt_m_dfflr (cnt_m_ena, cnt_m_nxt, cnt_m_r, eai_clk, eai_rst_n);
 
    wire [`E203_ADDR_SIZE-1:0] cnt_k_r;
    wire [`E203_ADDR_SIZE-1:0] cnt_k_max = dim_im_out_r - 32'b1;
    wire cnt_k_loop = (cnt_k_r < cnt_k_max);
    wire cnt_k_end = (cnt_k_r == cnt_k_max);
+   wire cnt_mnl_end = cnt_m_end & cnt_nl_end;
    wire [`E203_ADDR_SIZE-1:0] cnt_k_nxt = (cnt_k_loop) ? cnt_k_r + 1'b1 : 32'b0;
-   wire cnt_k_ena = state_is_jj_loop & cnt_m_end ;
+   wire cnt_k_ena = state_is_jj_loop & cnt_mnl_end ;
    sirv_gnrl_dfflr #(`E203_ADDR_SIZE) cnt_k_dfflr (cnt_k_ena, cnt_k_nxt, cnt_k_r, eai_clk, eai_rst_n);
 
    wire [`E203_ADDR_SIZE-1:0] cnt_j_r;
    wire [`E203_ADDR_SIZE-1:0] cnt_j_max = cnt_k_max;
    wire cnt_j_loop = (cnt_j_r < cnt_j_max);
-   wire cnt_j_end = (cnt_j_r == cnt_j_max);    
+   wire cnt_j_end = (cnt_j_r == cnt_j_max);
+   wire cnt_kmnl_end = cnt_k_end & cnt_mnl_end;
    wire [`E203_ADDR_SIZE-1:0] cnt_j_nxt = (cnt_j_loop) ? cnt_j_r + 1'b1 : 32'b0;
-   wire cnt_j_ena = state_is_jj_loop & cnt_k_end;
+   wire cnt_j_ena = state_is_jj_loop & cnt_kmnl_end;
    sirv_gnrl_dfflr #(`E203_ADDR_SIZE) cnt_j_dfflr (cnt_j_ena, cnt_j_nxt, cnt_j_r, eai_clk, eai_rst_n);
 
    wire [`E203_ADDR_SIZE-1:0] cnt_i_r;
    wire [`E203_ADDR_SIZE-1:0] cnt_i_max = ch_im_out_r - 32'b1;
    wire cnt_i_loop = (cnt_i_r < cnt_i_max);
-   wire cnt_i_end = (cnt_i_r == cnt_i_max); 
+   wire cnt_i_end = (cnt_i_r == cnt_i_max);
+   wire cnt_jkmnl_end = cnt_j_end & cnt_kmnl_end;
    wire [`E203_ADDR_SIZE-1:0] cnt_i_nxt = (cnt_i_loop) ? cnt_i_r + 1'b1 : 32'b0;
-   wire cnt_i_ena = state_is_jj_loop & cnt_j_end ;
+   wire cnt_i_ena = state_is_jj_loop & cnt_jkmnl_end ;
    sirv_gnrl_dfflr #(`E203_ADDR_SIZE) cnt_i_dfflr (cnt_i_ena, cnt_i_nxt, cnt_i_r, eai_clk, eai_rst_n);
 
+   wire cnt_ijkmnl_end = cnt_jkmnl_end & cnt_i_end;
    assign in_row = stride_r * cnt_j_r + cnt_m_r - padding_r;
    assign in_col = stride_r * cnt_k_r + cnt_n_r - padding_r;
    wire [`E203_ADDR_SIZE-1:0] im_in_real_addr = im_in_addr_r + (in_row * dim_im_in_r + in_col) * ch_im_in_r + cnt_l_r;
+   wire [`E203_ADDR_SIZE-1:0] wt_real_addr = wt_addr_r + (cnt_i_r * ch_im_in_r * filter_size_r * filter_size_r + (cnt_m_r * filter_size_r + cnt_n_r) * ch_im_in_r + cnt_l_r);
 
+
+   wire [`E203_ADDR_SIZE-1:0] im_in_real_addr_r;
+   wire [`E203_ADDR_SIZE-1:0] im_in_real_addr_nxt = im_in_real_addr;
+   sirv_gnrl_dffr #(`E203_ADDR_SIZE) im_in_real_addr_dffr (im_in_real_addr_nxt, im_in_real_addr_r, eai_clk, eai_rst_n);
+
+   wire [`E203_ADDR_SIZE-1:0] wt_real_addr_r;
+   wire [`E203_ADDR_SIZE-1:0] wt_real_addr_nxt = wt_real_addr;
+   sirv_gnrl_dffr #(`E203_ADDR_SIZE) wt_real_addr_dffr (wt_real_addr_nxt, wt_real_addr_r, eai_clk, eai_rst_n);
+
+
+   wire [`E203_ADDR_SIZE-1:0] cnt_im_out_r;
+   wire [`E203_ADDR_SIZE-1:0] cnt_im_out_nxt = (custom0_jj_loop_ena) ? 32'b0 : cnt_im_out_r + 32'h1;
+   wire cnt_im_out_ena = store_im_out | custom0_jj_loop_ena;
+
+   sirv_gnrl_dfflr #(`E203_ADDR_SIZE) cnt_im_out_dfflr (cnt_im_out_ena, cnt_im_out_nxt, cnt_im_out_r, eai_clk, eai_rst_n);
+
+   wire [`E203_ADDR_SIZE-1:0] im_out_real_addr = im_out_addr_r + cnt_im_out_r;
+
+
+   wire load_start = state_is_jj_loop & cnt_l_start & (~store_im_out);
+   wire load_im_valid = (cnt_load_dat_r == 2'b0) & load_start;
+   wire load_wt_valid = (cnt_load_dat_r == 2'b1) & load_start;
+
+   wire load_data_valid = load_im_valid | load_wt_valid ;
+
+   wire load_im_valid_r;
+   wire load_im_valid_nxt = load_im_valid;
+   sirv_gnrl_dffr #(1) load_im_valid_dffr (load_im_valid_nxt, load_im_valid_r, eai_clk, eai_rst_n);
+
+   wire load_wt_valid_r;
+   wire load_wt_valid_nxt = load_wt_valid;
+   sirv_gnrl_dffr #(1) load_wt_valid_dffr (load_wt_valid_nxt, load_wt_valid_r, eai_clk, eai_rst_n);
+   
+
+   wire [`E203_ADDR_SIZE-1:0] im_in_value_r;
+   wire in_im_value_ena = load_im_valid_r & eai_icb_rsp_hsked;
+   wire [`E203_ADDR_SIZE-1:0] im_in_value_nxt = eai_icb_rsp_rdata;
+   sirv_gnrl_dfflr #(`E203_ADDR_SIZE) im_in_value_dfflr (in_im_value_ena, im_in_value_nxt, im_in_value_r, eai_clk, eai_rst_n);
+
+   wire [`E203_ADDR_SIZE-1:0] wt_value_r;
+   wire wt_value_ena = load_wt_valid_r & eai_icb_rsp_hsked;
+   wire [`E203_ADDR_SIZE-1:0] wt_value_nxt = eai_icb_rsp_rdata;
+   sirv_gnrl_dfflr #(`E203_ADDR_SIZE) wt_value_dfflr (wt_value_ena, wt_value_nxt, wt_value_r, eai_clk, eai_rst_n);
+
+   wire jj_loop_byte0 = (im_out_real_addr[1:0] == 2'h0);
+   wire jj_loop_byte1 = (im_out_real_addr[1:0] == 2'h1);
+   wire jj_loop_byte2 = (im_out_real_addr[1:0] == 2'h2);
+   wire jj_loop_byte3 = (im_out_real_addr[1:0] == 2'h3);
+
+   wire jj_im_in_byte0 = (im_in_real_addr_r[1:0] == 2'h0);
+   wire jj_im_in_byte1 = (im_in_real_addr_r[1:0] == 2'h1);
+   wire jj_im_in_byte2 = (im_in_real_addr_r[1:0] == 2'h2);
+   wire jj_im_in_byte3 = (im_in_real_addr_r[1:0] == 2'h3);
+
+   wire jj_wt_byte0 = (wt_real_addr_r[1:0] == 2'h0);
+   wire jj_wt_byte1 = (wt_real_addr_r[1:0] == 2'h1);
+   wire jj_wt_byte2 = (wt_real_addr_r[1:0] == 2'h2);
+   wire jj_wt_byte3 = (wt_real_addr_r[1:0] == 2'h3);
+
+   wire [3:0] byte_im_pk = {jj_im_in_byte3 , jj_im_in_byte2 , jj_im_in_byte1, jj_im_in_byte0};
+   wire [3:0] byte_wt_pk = {jj_wt_byte3 , jj_wt_byte2 , jj_wt_byte1, jj_wt_byte0};
+
+   wire [3:0] byte_im_pk_r;
+   wire [3:0] byte_im_pk_nxt = byte_im_pk;
+   wire byte_im_pk_ena = in_im_value_ena;
+   sirv_gnrl_dfflr #(4) byte_im_pk_dfflr (byte_im_pk_ena, byte_im_pk_nxt, byte_im_pk_r, eai_clk, eai_rst_n);
+
+   wire [3:0] byte_wt_pk_r;
+   wire [3:0] byte_wt_pk_nxt = byte_wt_pk;
+   wire byte_wt_pk_ena = wt_value_ena;
+   sirv_gnrl_dfflr #(4) byte_wt_pk_dfflr (byte_wt_pk_ena, byte_wt_pk_nxt, byte_wt_pk_r, eai_clk, eai_rst_n);
+
+
+   wire conv_out_valid_r;
+   wire conv_out_valid_nxt = wt_value_ena;
+   sirv_gnrl_dffr #(1) conv_out_valid_dffr (conv_out_valid_nxt, conv_out_valid_r, eai_clk, eai_rst_n);
+
+
+   wire conv_init_valid_r1;
+   wire conv_init_valid_nxt1 = cnt_mnl_end;
+   sirv_gnrl_dffr #(1) conv_init_valid1_dffr (conv_init_valid_nxt1, conv_init_valid_r1, eai_clk, eai_rst_n);
+
+   wire conv_init_valid_r2;
+   wire conv_init_valid_nxt2 = conv_init_valid_r1;
+   sirv_gnrl_dffr #(1) conv_init_valid2_dffr (conv_init_valid_nxt2, conv_init_valid_r2, eai_clk, eai_rst_n);
+
+   wire conv_init_valid_r3;
+   wire conv_init_valid_nxt3 = conv_init_valid_r2;
+   sirv_gnrl_dffr #(1) conv_init_valid3_dffr (conv_init_valid_nxt3, conv_init_valid_r3, eai_clk, eai_rst_n);
+
+   wire conv_init_valid_r4;
+   wire conv_init_valid_nxt4 = conv_init_valid_r3;
+   sirv_gnrl_dffr #(1) conv_init_valid4_dffr (conv_init_valid_nxt4, conv_init_valid_r4, eai_clk, eai_rst_n);
+
+   assign store_im_out = conv_init_valid_r4;
+
+   
+
+   wire [`E203_ADDR_SIZE-1:0] conv_out_r;
+   wire [`E203_ADDR_SIZE-1:0] conv_out_init = (conv_init_valid_r4) ? 32'b0 : conv_out_r;
+   wire [`E203_ADDR_SIZE-1:0] conv_out_nxt = ({8{byte_im_pk_r[0]}} & (im_in_value_r[07:00]) |    
+                                              {8{byte_im_pk_r[1]}} & (im_in_value_r[15:08]) |   
+                                              {8{byte_im_pk_r[2]}} & (im_in_value_r[23:16]) |   
+                                              {8{byte_im_pk_r[3]}} & (im_in_value_r[31:24])
+                                             ) 
+                                             *
+                                             ( 
+                                              {8{byte_wt_pk_r[0]}} & (wt_value_r[07:00]) | 
+                                              {8{byte_wt_pk_r[1]}} & (wt_value_r[15:08]) |
+                                              {8{byte_wt_pk_r[2]}} & (wt_value_r[23:16]) |
+                                              {8{byte_wt_pk_r[3]}} & (wt_value_r[31:24]) 
+                                             ) 
+                                             +
+                                             conv_out_init;
+   wire conv_out_ena = conv_out_valid_r;
+
+   sirv_gnrl_dfflr #(`E203_ADDR_SIZE) conv_out_dfflr (conv_out_ena, conv_out_nxt, conv_out_r, eai_clk, eai_rst_n);
+
+
+   wire conv_out_max = | conv_out_r[30:7];
+   wire conv_out_min = | conv_out_r[30:8];
+
+   wire [31:0] ssat_max = (~conv_out_r[31]) & conv_out_max ;
+   wire [31:0] ssat_min = (conv_out_r[31]) & conv_out_min;
+
+   wire [7:0] im_out = (ssat_max) ? 8'd127 : (ssat_min) ? -8'd128 : conv_out_r[7:0]
+                                       ;
+   wire jj_loop_ret_r;
+   wire jj_loop_ret_set = cnt_ijkmnl_end;
+   wire jj_loop_ret_clr = conv_init_valid_r4;
+   wire jj_loop_ret_ena = jj_loop_ret_set | jj_loop_ret_clr;
+   wire jj_loop_ret_nxt = cnt_ijkmnl_end;
+
+   sirv_gnrl_dfflr #(1) jj_loop_ret_dfflr (jj_loop_ret_ena, jj_loop_ret_nxt, jj_loop_ret_r, eai_clk, eai_rst_n);
+
+   wire jj_loop_ret = jj_loop_ret_r & conv_init_valid_r4;
 
    //==================custom0_rowsum start===========================//
 
@@ -338,53 +495,41 @@ module sirv_eai_core (
 
    sirv_gnrl_dfflr #(32) custom0_rowsum_num_dfflr (custom0_rowsum_num_ena, custom0_rowsum_num_nxt, custom0_rowsum_num_r, eai_clk, eai_rst_n);
 
-   reg rowsum_start;
-   always @(posedge eai_clk or negedge eai_rst_n)
-   begin
-     if (!eai_rst_n)
-       rowsum_start <= 1'b0;
-     else if (custom0_rowsum_ena)
-       rowsum_start <= #1 custom0_rowsum_ena;
-     else
-       rowsum_start <= 1'b0;
-   end
+   wire rowsum_start_r;
+   wire rowsum_start_set = custom0_rowsum_ena;
+   wire rowsum_start_clr = rowsum_start_r;
+   wire rowsum_start_ena = rowsum_start_set | rowsum_start_clr;
+   wire rowsum_start_nxt = rowsum_start_set ;
+   sirv_gnrl_dfflr #(1) rowsum_start_dfflr (rowsum_start_ena, rowsum_start_nxt, rowsum_start_r, eai_clk, eai_rst_n);
+
 
    wire [`E203_ADDR_SIZE-1:0] rowsum_real_addr =  matrix_entry_addr_r + custom0_rowsum_num_r * matrix_size_r*4;
 
    wire [3:0] cnt_rowsum_r;
-   wire  cnt_rowsum_ena = state_is_rowsum | (cnt_rowsum_r == 3);
+   wire rowsum_end = (cnt_rowsum_r == 3);
+   wire  cnt_rowsum_ena = state_is_rowsum | rowsum_end;
    wire [3:0] cnt_rowsum_nxt = (custom0_rowsum_ena | state_is_rowsum & eai_icb_rsp_hsked) ? cnt_rowsum_r + 4'b1 :
                                (state_is_idle) ? 4'b0 : cnt_rowsum_r;
 
    sirv_gnrl_dfflr #(4) cnt_rowsum_dfflr (cnt_rowsum_ena, cnt_rowsum_nxt, cnt_rowsum_r, eai_clk, eai_rst_n);
 
-   wire eai_icb_cmd_valid_nxt = (rowsum_start | (cnt_rowsum_r < 2) & eai_icb_rsp_hsked) ? 1'b1 : 1'b0;
-   reg eai_icb_cmd_valid_r;
-   
-   always @(posedge eai_clk or negedge eai_rst_n)
-   begin
-     if (!eai_rst_n)
-       eai_icb_cmd_valid_r <= 1'b0;
-     else if (eai_icb_cmd_valid_nxt)
-       eai_icb_cmd_valid_r <= #1 eai_icb_cmd_valid_nxt;
-     else
-       eai_icb_cmd_valid_r <= 1'b0;
-   end
+   wire eai_icb_cmd_valid_real = (state_is_rowsum & (rowsum_start_r | (cnt_rowsum_r < 2) & eai_icb_rsp_hsked)) ? 1'b1 : 1'b0;
+   wire eai_icb_cmd_valid_r;
+   wire eai_icb_cmd_valid_set = eai_icb_cmd_valid_real;
+   wire eai_icb_cmd_valid_clr = eai_icb_cmd_valid_r;
+   wire eai_icb_cmd_valid_ena = eai_icb_cmd_valid_set | eai_icb_cmd_valid_clr;
+   wire eai_icb_cmd_valid_nxt = eai_icb_cmd_valid_set;
+  
+   sirv_gnrl_dfflr #(1) eai_icb_cmd_valid_dfflr (eai_icb_cmd_valid_ena, eai_icb_cmd_valid_nxt, eai_icb_cmd_valid_r, eai_clk, eai_rst_n);
 
-   assign eai_icb_cmd_valid = eai_icb_cmd_valid_r;
+   
 
    wire [`E203_ADDR_SIZE-1:0] eai_icb_cmd_addr_r;
-   wire [`E203_ADDR_SIZE-1:0] eai_icb_cmd_addr_nxt = (rowsum_start) ? rowsum_real_addr : eai_icb_cmd_addr_r + 32'h4;
+   wire [`E203_ADDR_SIZE-1:0] eai_icb_cmd_addr_nxt = (rowsum_start_r) ? rowsum_real_addr : eai_icb_cmd_addr_r + 32'h4;
    
 
    sirv_gnrl_dfflr #(`E203_ADDR_SIZE) eai_icb_cmd_addr_dfflr (eai_icb_cmd_valid_nxt, eai_icb_cmd_addr_nxt, eai_icb_cmd_addr_r, eai_clk, eai_rst_n);
 
-   assign eai_icb_cmd_addr = eai_icb_cmd_addr_r;
-   assign eai_icb_cmd_wdata = 32'b0;
-   assign eai_icb_cmd_size = 2'b10;
-   assign eai_icb_rsp_ready = 1'b1;
-   assign eai_icb_cmd_read = 1'b1;
-   assign eai_mem_holdup =  (state_is_rowsum | state_is_jj_loop) ? 1'b1 : 1'b0;
 
    
    wire [`E203_XLEN*3 -1:0] buf_row_r;
@@ -402,7 +547,7 @@ module sirv_eai_core (
                    | custom0_jj_init_pw_ena  & state_is_idle
                    | custom0_jj_init_imaddr_ena  & state_is_idle
                    | custom0_jj_loop_ena  & state_is_idle
-                   | (cnt_rowsum_r == 3) & state_is_rowsum
+                   | rowsum_end & state_is_rowsum
                    | state_is_setup
                    | state_is_colsum
                    | state_is_jj_init_ch
@@ -410,7 +555,7 @@ module sirv_eai_core (
                    | state_is_jj_init_fs
                    | state_is_jj_init_pw
                    | state_is_jj_init_imaddr
-                   | state_is_jj_loop & (cnt_i_r == (ch_im_out_r - 32'b1))
+                   | state_is_jj_loop & jj_loop_ret
                    ;
 
    sirv_gnrl_dfflr #(EAI_FSM) state_dfflr (state_ena, next_state, state_r, eai_clk, eai_rst_n);
@@ -428,16 +573,6 @@ module sirv_eai_core (
 
    sirv_gnrl_dfflr #(32) custom0_colsum_num_dfflr (custom0_colsum_num_ena, custom0_colsum_num_nxt, custom0_colsum_num_r, eai_clk, eai_rst_n);
 
-   assign eai_rsp_valid = (state_is_setup  
-                          | state_is_colsum 
-                          | (cnt_rowsum_r == 3) 
-                          | state_is_jj_init_ch 
-                          | state_is_jj_init_im 
-                          | state_is_jj_init_fs 
-                          | state_is_jj_init_pw 
-                          | state_is_jj_init_imaddr
-                          | (cnt_i_r == (ch_im_out_r - 32'b1))
-                          ) ? 1'b1 : 1'b0;
 
    wire [`E203_XLEN -1:0] eai_rsp_rdat_r;
    wire [`E203_XLEN -1:0] eai_rsp_rdat_nxt = (state_is_idle) ? 32'h0 : eai_icb_rsp_rdata + eai_rsp_rdat_r;
@@ -447,9 +582,38 @@ module sirv_eai_core (
    wire [`E203_XLEN -1:0] eai_rsp_rdat_colsum = (custom0_colsum_num_r == 0) ? buf_row_r[`E203_XLEN*3-1:`E203_XLEN*2] :
                                                 (custom0_colsum_num_r == 1) ? buf_row_r[`E203_XLEN*2-1:`E203_XLEN*1] :
                                                 (custom0_colsum_num_r == 2) ? buf_row_r[`E203_XLEN-1 : 0] : 32'b0;
+
+   
+   //========================interface==========================================//
+   //
    assign eai_rsp_rdat = (state_is_rowsum) ? eai_rsp_rdat_r : (state_is_colsum) ? eai_rsp_rdat_colsum : 32'b0; 
    assign eai_rsp_err = 1'b0;   	  
    assign eai_active = 1'b1;
    assign eai_req_ready = (state_is_idle) ? 1'b1 : 1'b0;
+   assign eai_icb_cmd_valid = eai_icb_cmd_valid_r | load_data_valid | conv_init_valid_r4;
+   assign eai_icb_cmd_addr =   {32{state_is_rowsum}} & eai_icb_cmd_addr_r 
+                             | {32{state_is_jj_loop & load_im_valid}} & im_in_real_addr 
+                             | {32{state_is_jj_loop & load_wt_valid}} & wt_real_addr
+                             | {32{conv_init_valid_r4}} & im_out_real_addr
+                             ;
+   assign eai_icb_cmd_wdata = (conv_init_valid_r4) ? {{8{jj_loop_byte3}}&im_out , 
+                                                      {8{jj_loop_byte2}}&im_out , 
+                                                      {8{jj_loop_byte1}}&im_out , 
+                                                      {8{jj_loop_byte0}}&im_out} : 8'b0;
+   assign eai_icb_cmd_size = (state_is_jj_loop) ? 2'b00 : 2'b10;
+   assign eai_icb_rsp_ready = 1'b1;
+   assign eai_icb_cmd_read = (conv_init_valid_r4) ? 1'b0 : 1'b1;
+   assign eai_mem_holdup =  (state_is_rowsum | state_is_jj_loop) ? 1'b1 : 1'b0;
+ 
+   assign eai_rsp_valid = ( state_is_setup  
+                          | state_is_colsum 
+                          | rowsum_end
+                          | state_is_jj_init_ch 
+                          | state_is_jj_init_im 
+                          | state_is_jj_init_fs 
+                          | state_is_jj_init_pw 
+                          | state_is_jj_init_imaddr
+                          | jj_loop_ret
+                          ) ? 1'b1 : 1'b0;
 
 endmodule

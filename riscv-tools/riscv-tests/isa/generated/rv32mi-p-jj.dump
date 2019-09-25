@@ -218,26 +218,28 @@ Disassembly of section .text.init:
 80000288:	4285                	li	t0,1
 8000028a:	0a52300b          	0xa52300b
 8000028e:	4201                	li	tp,0
-80000290:	900012b7          	lui	t0,0x90001
-80000294:	0c52300b          	0xc52300b
-80000298:	90000237          	lui	tp,0x90000
-8000029c:	900022b7          	lui	t0,0x90002
-800002a0:	0e52300b          	0xe52300b
-800002a4:	1052400b          	0x1052400b
-800002a8:	a821                	j	800002c0 <pass>
-800002aa:	00301b63          	bne	zero,gp,800002c0 <pass>
+80000290:	900002b7          	lui	t0,0x90000
+80000294:	10028293          	addi	t0,t0,256 # 90000100 <_end+0xfffe0e0>
+80000298:	0c52300b          	0xc52300b
+8000029c:	90000237          	lui	tp,0x90000
+800002a0:	900002b7          	lui	t0,0x90000
+800002a4:	20028293          	addi	t0,t0,512 # 90000200 <_end+0xfffe1e0>
+800002a8:	0e52300b          	0xe52300b
+800002ac:	1052400b          	0x1052400b
+800002b0:	a821                	j	800002c8 <pass>
+800002b2:	00301b63          	bne	zero,gp,800002c8 <pass>
 
-800002ae <fail>:
-800002ae:	0ff0000f          	fence
-800002b2:	00018063          	beqz	gp,800002b2 <fail+0x4>
-800002b6:	0186                	slli	gp,gp,0x1
-800002b8:	0011e193          	ori	gp,gp,1
-800002bc:	00000073          	ecall
+800002b6 <fail>:
+800002b6:	0ff0000f          	fence
+800002ba:	00018063          	beqz	gp,800002ba <fail+0x4>
+800002be:	0186                	slli	gp,gp,0x1
+800002c0:	0011e193          	ori	gp,gp,1
+800002c4:	00000073          	ecall
 
-800002c0 <pass>:
-800002c0:	0ff0000f          	fence
-800002c4:	4185                	li	gp,1
-800002c6:	00000073          	ecall
+800002c8 <pass>:
+800002c8:	0ff0000f          	fence
+800002cc:	4185                	li	gp,1
+800002ce:	00000073          	ecall
 	...
 
 Disassembly of section .tohost:

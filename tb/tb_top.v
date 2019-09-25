@@ -12,6 +12,7 @@ module tb_top();
   `define CPU_TOP u_e200_soc_top.u_e200_subsys_top.u_e200_subsys_main.u_e200_cpu_top
   `define EXU `CPU_TOP.u_e200_cpu.u_e200_core.u_e200_exu
   `define ITCM `CPU_TOP.u_e200_srams.u_e200_itcm_ram.u_e200_itcm_gnrl_ram.u_sirv_sim_ram
+  `define DTCM `CPU_TOP.u_e200_srams.u_e200_dtcm_ram.u_e200_dtcm_gnrl_ram.u_sirv_sim_ram
 
   `define PC_WRITE_TOHOST       `E200_PC_SIZE'h80000086
   `define PC_EXT_IRQ_BEFOR_MRET `E200_PC_SIZE'h800000a6
@@ -276,6 +277,23 @@ module tb_top();
         $display("ITCM 0x20: %h", `ITCM.mem_r[8'h20]);
 
     end 
+
+
+ //   initial begin
+
+ //     for (i=0;i<(`E200_DTCM_RAM_DP);i=i+1) begin
+ //         `DTCM.mem_r[i][00+7:00] = i+0;
+ //         `DTCM.mem_r[i][08+7:08] = i+1;
+ //         `DTCM.mem_r[i][16+7:16] = i+2;
+ //         `DTCM.mem_r[i][24+7:24] = i+3;
+ //        // `DTCM.mem_r[i][32+7:32] = i+4;
+ //        // `DTCM.mem_r[i][40+7:40] = i+5;
+ //        // `DTCM.mem_r[i][48+7:48] = i+6;
+ //        // `DTCM.mem_r[i][56+7:56] = i+7;
+ //     end
+
+ //   end 
+    
 
 
 
