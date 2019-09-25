@@ -279,20 +279,16 @@ module tb_top();
     end 
 
 
- //   initial begin
+    initial begin
 
- //     for (i=0;i<(`E200_DTCM_RAM_DP);i=i+1) begin
- //         `DTCM.mem_r[i][00+7:00] = i+0;
- //         `DTCM.mem_r[i][08+7:08] = i+1;
- //         `DTCM.mem_r[i][16+7:16] = i+2;
- //         `DTCM.mem_r[i][24+7:24] = i+3;
- //        // `DTCM.mem_r[i][32+7:32] = i+4;
- //        // `DTCM.mem_r[i][40+7:40] = i+5;
- //        // `DTCM.mem_r[i][48+7:48] = i+6;
- //        // `DTCM.mem_r[i][56+7:56] = i+7;
- //     end
+      for (i=0;i<(`E200_DTCM_RAM_DP);i=i+1) begin
+          `DTCM.mem_r[i][00+7:00] = i+0;
+          `DTCM.mem_r[i][08+7:08] = i+1;
+          `DTCM.mem_r[i][16+7:16] = i+2;
+          `DTCM.mem_r[i][24+7:24] = i+3;
+      end
 
- //   end 
+    end 
     
 
 
