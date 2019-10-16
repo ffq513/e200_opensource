@@ -35,6 +35,10 @@ test1:
 #  addi x5 , x5 , 4
 #  bne x4 ,x6 , init_mem2
 
+  li x4 , 0x00020001 //bias_shift
+  li x5 , 0x90000800 //out_shift
+  .insn r 0xb , 3 ,0xb , x0 ,x4 ,x5  //custom0[0xb] , func3[xd,xs1,xs2(011)] ,func7[3] , xd , xs1 ,xs2 // [jj_init_ch]
+
 
   li x4 , 3 //ch_im_in
   li x5 , 3 //ch_im_out
