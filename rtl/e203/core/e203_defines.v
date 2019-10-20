@@ -173,7 +173,7 @@
   // The ITCM size is 2^addr_width bytes, and ITCM is 64bits wide (8 bytes)
   //  so the DP is 2^addr_wdith/8
   //  so the AW is addr_wdith - 3
-  `define E203_ITCM_RAM_DP      (1<<(`E203_CFG_ITCM_ADDR_WIDTH-3)) 
+  `define E203_ITCM_RAM_DP      (1<<(`E203_CFG_ITCM_ADDR_WIDTH-2)) 
   `define E203_ITCM_RAM_AW          (`E203_CFG_ITCM_ADDR_WIDTH-3) 
   `define E203_ITCM_BASE_REGION  `E203_ADDR_SIZE-1:`E203_ITCM_ADDR_WIDTH
   
@@ -206,7 +206,7 @@
   // The DTCM size is 2^addr_width bytes, and DTCM is 32bits wide (4 bytes)
   //  so the DP is 2^addr_wdith/4
   //  so the AW is addr_wdith - 2
-  `define E203_DTCM_RAM_DP      (1<<(`E203_CFG_DTCM_ADDR_WIDTH-2)) 
+  `define E203_DTCM_RAM_DP      (1<<(`E203_CFG_DTCM_ADDR_WIDTH)) 
   `define E203_DTCM_RAM_AW          (`E203_CFG_DTCM_ADDR_WIDTH-2) 
   `define E203_DTCM_BASE_REGION `E203_ADDR_SIZE-1:`E203_DTCM_ADDR_WIDTH
   

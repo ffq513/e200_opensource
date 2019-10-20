@@ -86,6 +86,9 @@ module sirv_eai_core (
    wire rv32_func7_0000110 = (rv32_func7 == 7'b0000110); 
    wire rv32_func7_0000111 = (rv32_func7 == 7'b0000111);
    wire rv32_func7_0001000 = (rv32_func7 == 7'b0001000);
+   wire rv32_func7_0001001 = (rv32_func7 == 7'b0001001);
+   wire rv32_func7_0001010 = (rv32_func7 == 7'b0001010);
+   wire rv32_func7_0001011 = (rv32_func7 == 7'b0001011);
 
    wire eai_req_hsked     = eai_req_valid & eai_req_ready;
    wire eai_rsp_hsked     = eai_rsp_valid & eai_rsp_ready;
@@ -100,6 +103,10 @@ module sirv_eai_core (
    wire custom0_jj_init_pw   = opcode_custom0 & rv32_func3_011 & rv32_func7_0000110;//6
    wire custom0_jj_init_imaddr   = opcode_custom0 & rv32_func3_011 & rv32_func7_0000111;//7
    wire custom0_jj_loop   = opcode_custom0 & rv32_func3_100 & rv32_func7_0001000;//8
+   wire custom0_jj_relu_q7   = opcode_custom0 & rv32_func3_100 & rv32_func7_0001001;//9
+   wire custom0_jj_relu_size   = opcode_custom0 & rv32_func3_011 & rv32_func7_0001010;//10
+   wire custom0_jj_init_bias   = opcode_custom0 & rv32_func3_011 & rv32_func7_0001011;//11
+   
 
    parameter EAI_FSM = 4;
    parameter IDLE    = 4'h0;
@@ -112,6 +119,9 @@ module sirv_eai_core (
    parameter JJ_INIT_PW  = 4'h7;
    parameter JJ_INIT_IMADDR  = 4'h8;
    parameter JJ_LOOP  = 4'h9;
+   parameter JJ_RELU_Q7  = 4'ha;
+   parameter JJ_RELU_SIZE  = 4'hb;
+   parameter JJ_INIT_BIAS  = 4'hc;
    
    wire [EAI_FSM-1:0] state_r;
 
@@ -125,6 +135,9 @@ module sirv_eai_core (
    wire state_is_jj_init_pw = (state_r == JJ_INIT_PW);
    wire state_is_jj_init_imaddr = (state_r == JJ_INIT_IMADDR);
    wire state_is_jj_loop = (state_r == JJ_LOOP);
+   wire state_is_jj_relu_q7 = (state_r == JJ_RELU_Q7);
+   wire state_is_jj_relu_size = (state_r == JJ_RELU_SIZE);
+   wire state_is_jj_init_bias = (state_r == JJ_INIT_BIAS);
 
 
    wire custom0_setup_ena  = custom0_setup  & eai_req_hsked;
@@ -136,6 +149,9 @@ module sirv_eai_core (
    wire custom0_jj_init_pw_ena = custom0_jj_init_pw & eai_req_hsked;
    wire custom0_jj_init_imaddr_ena = custom0_jj_init_imaddr & eai_req_hsked;
    wire custom0_jj_loop_ena = custom0_jj_loop & eai_req_hsked;
+   wire custom0_jj_relu_q7_ena = custom0_jj_relu_q7 & eai_req_hsked;
+   wire custom0_jj_relu_size_ena = custom0_jj_relu_size & eai_req_hsked;
+   wire custom0_jj_init_bias_ena = custom0_jj_init_bias & eai_req_hsked;
 
    wire [EAI_FSM-1:0] next_state_idle  = custom0_setup_ena  ? SETUP  : 
                                          custom0_rowsum_ena ? ROWSUM :
@@ -145,7 +161,10 @@ module sirv_eai_core (
                                          custom0_jj_init_fs_ena ? JJ_INIT_FS : 
                                          custom0_jj_init_pw_ena ? JJ_INIT_PW : 
                                          custom0_jj_init_imaddr_ena ? JJ_INIT_IMADDR : 
-                                         custom0_jj_loop_ena ? JJ_LOOP : 
+                                         custom0_jj_loop_ena ? JJ_LOOP :
+                                         custom0_jj_relu_q7_ena ? JJ_RELU_Q7 :
+                                         custom0_jj_relu_size_ena ? JJ_RELU_SIZE :
+                                         custom0_jj_init_bias_ena ? JJ_INIT_BIAS :
                                                                 IDLE   ;
    wire [EAI_FSM-1:0] next_state_setup  = IDLE;
    wire [EAI_FSM-1:0] next_state_rowsum = IDLE;
@@ -156,6 +175,9 @@ module sirv_eai_core (
    wire [EAI_FSM-1:0] next_state_jj_init_pw = IDLE;
    wire [EAI_FSM-1:0] next_state_jj_init_imaddr = IDLE;
    wire [EAI_FSM-1:0] next_state_jj_loop = IDLE;
+   wire [EAI_FSM-1:0] next_state_jj_relu_q7 = IDLE;
+   wire [EAI_FSM-1:0] next_state_jj_relu_size = IDLE;
+   wire [EAI_FSM-1:0] next_state_jj_init_bias = IDLE;
 
    wire [EAI_FSM-1:0] next_state =   {EAI_FSM{state_is_idle}}   & next_state_idle   
                                    | {EAI_FSM{state_is_setup}}  & next_state_setup  
@@ -167,7 +189,52 @@ module sirv_eai_core (
                                    | {EAI_FSM{state_is_jj_init_pw}} & next_state_jj_init_pw
                                    | {EAI_FSM{state_is_jj_init_imaddr}} & next_state_jj_init_imaddr
                                    | {EAI_FSM{state_is_jj_loop}} & next_state_jj_loop
+                                   | {EAI_FSM{state_is_jj_relu_q7}} & next_state_jj_relu_q7
+                                   | {EAI_FSM{state_is_jj_relu_size}} & next_state_jj_relu_size
+                                   | {EAI_FSM{state_is_jj_init_bias}} & next_state_jj_init_bias
                                    ;
+
+   
+   //=================custom0_jj_init_bias start=========================//
+   wire custom0_jj_init_bias_ret_next = custom0_jj_init_bias_ena;
+   wire custom0_jj_init_bias_ret_r;
+   wire custom0_jj_init_bias_ret = custom0_jj_init_bias_ret_r & state_is_jj_init_bias;
+   sirv_gnrl_dffrs #(1) custom0_jj_init_bias_ret_dffrs (custom0_jj_init_bias_ret_next,custom0_jj_init_bias_ret_r, eai_clk, eai_rst_n);
+
+   wire init_bias_ena  = custom0_jj_init_bias_ena;
+   wire [`E203_XLEN-1:0] init_bias_nxt  = eai_req_rs1;
+   wire [`E203_XLEN-1:0] init_bias_r ;
+   wire [15:0] bias_shift = init_bias_r[15:0];
+   wire [15:0] out_shift = init_bias_r[31:16];
+
+   sirv_gnrl_dfflr #(32) init_bias_dfflr (init_bias_ena, init_bias_nxt, init_bias_r, eai_clk, eai_rst_n);
+
+
+   wire bias_addr_ena  = custom0_jj_init_bias_ena;
+   wire [`E203_XLEN-1:0] bias_addr_nxt  = eai_req_rs2;
+   wire [`E203_XLEN-1:0] bias_addr_r ;
+   sirv_gnrl_dfflr #(32) bias_addr_dfflr (bias_addr_ena, bias_addr_nxt, bias_addr_r, eai_clk, eai_rst_n);
+
+
+
+   //=================custom0_jj_relu_size start=========================//
+   wire custom0_jj_relu_size_ret_next = custom0_jj_relu_size_ena;
+   wire custom0_jj_relu_size_ret_r;
+   wire custom0_jj_relu_size_ret = custom0_jj_relu_size_ret_r & state_is_jj_relu_size;
+   sirv_gnrl_dffrs #(1) custom0_jj_relu_size_ret_dffrs (custom0_jj_relu_size_ret_next,custom0_jj_relu_size_ret_r, eai_clk, eai_rst_n);
+
+   wire relu_size_ena  = custom0_jj_relu_size_ena;
+   wire [`E203_XLEN-1:0] relu_size_nxt  = eai_req_rs1;
+   wire [`E203_XLEN-1:0] relu_size_r ;
+   sirv_gnrl_dfflr #(32) relu_size_dfflr (relu_size_ena, relu_size_nxt, relu_size_r, eai_clk, eai_rst_n);
+
+
+   wire relu_addr_ena  = custom0_jj_relu_size_ena;
+   wire [`E203_XLEN-1:0] relu_addr_nxt  = eai_req_rs2;
+   wire [`E203_XLEN-1:0] relu_addr_r ;
+   sirv_gnrl_dfflr #(32) relu_addr_dfflr (relu_addr_ena, relu_addr_nxt, relu_addr_r, eai_clk, eai_rst_n);
+   //=================custom0_jj_relu_q7===============================//
+
 
 
    //=================custom0_jj_init_ch start=========================//
@@ -271,7 +338,11 @@ module sirv_eai_core (
 
    //==================custom0_jj_loop start===========================//
    //
+   //
+
    wire store_im_out;
+   wire re_conv_out;
+
    wire [`E203_ADDR_SIZE-1:0] in_row ;
    wire [`E203_ADDR_SIZE-1:0] in_col ;
    wire in_row_is_not_negative = (in_row >= 0);
@@ -279,10 +350,8 @@ module sirv_eai_core (
 
    wire in_row_loop = (in_row < dim_im_in_r);
    wire in_col_loop = (in_col < dim_im_in_r);
-   wire cnt_l_start = in_row_is_not_negative 
-                    & in_col_is_not_negative 
-                    & in_row_loop 
-                    & in_col_loop;
+
+   wire cnt_l_start = in_row_is_not_negative & in_col_is_not_negative & in_row_loop & in_col_loop;
 
    wire [`E203_ADDR_SIZE-1:0] cnt_l_r;
    wire [`E203_ADDR_SIZE-1:0] cnt_l_max = ch_im_in_r - 32'b1;
@@ -292,11 +361,11 @@ module sirv_eai_core (
 
    wire [1:0] cnt_load_dat_r;
    wire load_dat_end = (cnt_load_dat_r == 2'b1);
-   wire cnt_load_dat_ena = state_is_jj_loop & cnt_l_start & (~store_im_out);
+   wire cnt_load_dat_ena = state_is_jj_loop & cnt_l_start & (~store_im_out) & (~re_conv_out);
    wire [1:0] cnt_load_dat_nxt = (load_dat_end) ? 2'b0 : cnt_load_dat_r + 2'b1;
    sirv_gnrl_dfflr #(2) cnt_load_dat_dfflr (cnt_load_dat_ena, cnt_load_dat_nxt, cnt_load_dat_r, eai_clk, eai_rst_n);
 
-   wire load_dat_fi = load_dat_end & (~store_im_out);
+   wire load_dat_fi = load_dat_end & (~store_im_out) & (~re_conv_out);
    wire cnt_l_ena = state_is_jj_loop & ( cnt_l_end | cnt_l_start & cnt_l_loop ) & load_dat_fi;
    sirv_gnrl_dfflr #(`E203_ADDR_SIZE) cnt_l_dfflr (cnt_l_ena, cnt_l_nxt, cnt_l_r, eai_clk, eai_rst_n);
 
@@ -349,6 +418,7 @@ module sirv_eai_core (
    assign in_col = stride_r * cnt_k_r + cnt_n_r - padding_r;
    wire [`E203_ADDR_SIZE-1:0] im_in_real_addr = im_in_addr_r + (in_row * dim_im_in_r + in_col) * ch_im_in_r + cnt_l_r;
    wire [`E203_ADDR_SIZE-1:0] wt_real_addr = wt_addr_r + (cnt_i_r * ch_im_in_r * filter_size_r * filter_size_r + (cnt_m_r * filter_size_r + cnt_n_r) * ch_im_in_r + cnt_l_r);
+   wire [`E203_ADDR_SIZE-1:0] bias_real_addr = bias_addr_r + cnt_i_r*4;
 
 
    wire [`E203_ADDR_SIZE-1:0] im_in_real_addr_r;
@@ -361,15 +431,15 @@ module sirv_eai_core (
 
 
    wire [`E203_ADDR_SIZE-1:0] cnt_im_out_r;
-   wire [`E203_ADDR_SIZE-1:0] cnt_im_out_nxt = (custom0_jj_loop_ena) ? 32'b0 : cnt_im_out_r + 32'h1;
-   wire cnt_im_out_ena = store_im_out | custom0_jj_loop_ena;
+   wire [`E203_ADDR_SIZE-1:0] cnt_im_out_nxt = cnt_i_r + (cnt_j_r * dim_im_out_r + cnt_k_r) * ch_im_out_r;
+   wire cnt_im_out_ena = cnt_k_ena;
 
    sirv_gnrl_dfflr #(`E203_ADDR_SIZE) cnt_im_out_dfflr (cnt_im_out_ena, cnt_im_out_nxt, cnt_im_out_r, eai_clk, eai_rst_n);
 
    wire [`E203_ADDR_SIZE-1:0] im_out_real_addr = im_out_addr_r + cnt_im_out_r;
 
 
-   wire load_start = state_is_jj_loop & cnt_l_start & (~store_im_out);
+   wire load_start = state_is_jj_loop & cnt_l_start & (~store_im_out) & (~re_conv_out);
    wire load_im_valid = (cnt_load_dat_r == 2'b0) & load_start;
    wire load_wt_valid = (cnt_load_dat_r == 2'b1) & load_start;
 
@@ -444,12 +514,47 @@ module sirv_eai_core (
    wire conv_init_valid_nxt4 = conv_init_valid_r3;
    sirv_gnrl_dffr #(1) conv_init_valid4_dffr (conv_init_valid_nxt4, conv_init_valid_r4, eai_clk, eai_rst_n);
 
-   assign store_im_out = conv_init_valid_r4;
+   wire conv_init_valid_r5;
+   wire conv_init_valid_nxt5 = conv_init_valid_r4;
+   sirv_gnrl_dffr #(1) conv_init_valid5_dffr (conv_init_valid_nxt5, conv_init_valid_r5, eai_clk, eai_rst_n);
 
+   wire conv_init_valid_r6;
+   wire conv_init_valid_nxt6 = conv_init_valid_r5;
+   sirv_gnrl_dffr #(1) conv_init_valid6_dffr (conv_init_valid_nxt6, conv_init_valid_r6, eai_clk, eai_rst_n);
+
+
+   wire conv_init_valid_first_r1;
+   sirv_gnrl_dffr #(1) conv_init_valid_first_r1_dffr (custom0_jj_loop_ena, conv_init_valid_first_r1, eai_clk, eai_rst_n);
+   
+   wire conv_init_valid_first_r2;
+   sirv_gnrl_dffr #(1) conv_init_valid_first_r2_dffr (conv_init_valid_first_r1, conv_init_valid_first_r2, eai_clk, eai_rst_n);
+
+   wire conv_init_valid_first_r3;
+   sirv_gnrl_dffr #(1) conv_init_valid_first_r3_dffr (conv_init_valid_first_r2, conv_init_valid_first_r3, eai_clk, eai_rst_n);
+
+
+   wire conv_init_valid_first_r4;
+   sirv_gnrl_dffr #(1) conv_init_valid_first_r4_dffr (conv_init_valid_first_r3, conv_init_valid_first_r4, eai_clk, eai_rst_n);
+ 
+   wire conv_init_valid_first_r5;
+   sirv_gnrl_dffr #(1) conv_init_valid_first_r5_dffr (conv_init_valid_first_r4, conv_init_valid_first_r5, eai_clk, eai_rst_n);
    
 
+   assign re_conv_out = conv_init_valid_r5 | conv_init_valid_first_r1;
+   assign store_im_out = conv_init_valid_r4;
+
+
+  
+
    wire [`E203_ADDR_SIZE-1:0] conv_out_r;
-   wire [`E203_ADDR_SIZE-1:0] conv_out_init = (conv_init_valid_r4) ? 32'b0 : conv_out_r;
+
+   wire [`E203_ADDR_SIZE-1:0] conv_out_init_r;
+   wire [`E203_ADDR_SIZE-1:0] conv_out_init_nxt = (eai_icb_rsp_rdata << bias_shift) + ( ($signed(1) << out_shift) >> 1 );
+   wire conv_out_init_ena = conv_init_valid_r6 | conv_init_valid_first_r2;
+   
+   sirv_gnrl_dfflr #(`E203_ADDR_SIZE) conv_out_init_dfflr (conv_out_init_ena, conv_out_init_nxt, conv_out_init_r, eai_clk, eai_rst_n);
+
+   wire [`E203_ADDR_SIZE-1:0] conv_out_init = (conv_init_valid_r6 | conv_init_valid_first_r5) ? conv_out_init_r : conv_out_r;
    wire [`E203_ADDR_SIZE-1:0] conv_out_nxt = ({8{byte_im_pk_r[0]}} & (im_in_value_r[07:00]) |    
                                               {8{byte_im_pk_r[1]}} & (im_in_value_r[15:08]) |   
                                               {8{byte_im_pk_r[2]}} & (im_in_value_r[23:16]) |   
@@ -464,18 +569,19 @@ module sirv_eai_core (
                                              ) 
                                              +
                                              conv_out_init;
-   wire conv_out_ena = conv_out_valid_r;
+   wire conv_out_ena = (conv_out_valid_r & ~conv_init_valid_r4) | conv_init_valid_r6;
 
    sirv_gnrl_dfflr #(`E203_ADDR_SIZE) conv_out_dfflr (conv_out_ena, conv_out_nxt, conv_out_r, eai_clk, eai_rst_n);
 
+   wire [31:0] conv_out_shift = (conv_out_shift >> out_shift);
 
-   wire conv_out_max = | conv_out_r[30:7];
-   wire conv_out_min = | conv_out_r[30:8];
+   wire conv_out_max = | conv_out_shift[30:7];
+   wire conv_out_min = | conv_out_shift[30:8];
 
-   wire [31:0] ssat_max = (~conv_out_r[31]) & conv_out_max ;
-   wire [31:0] ssat_min = (conv_out_r[31]) & conv_out_min;
+   wire [31:0] ssat_max = (~conv_out_shift[31]) & conv_out_max ;
+   wire [31:0] ssat_min = (conv_out_shift[31]) & conv_out_min;
 
-   wire [7:0] im_out = (ssat_max) ? 8'd127 : (ssat_min) ? -8'd128 : conv_out_r[7:0]
+   wire [7:0] im_out = (ssat_max) ? 8'd127 : (ssat_min) ? -8'd128 : conv_out_shift[7:0]
                                        ;
    wire jj_loop_ret_r;
    wire jj_loop_ret_set = cnt_ijkmnl_end;
@@ -541,11 +647,13 @@ module sirv_eai_core (
    wire state_ena =  custom0_setup_ena   & state_is_idle 
                    | custom0_rowsum_ena  & state_is_idle 
                    | custom0_colsum_ena  & state_is_idle
+                   | custom0_jj_relu_size_ena  & state_is_idle
                    | custom0_jj_init_ch_ena  & state_is_idle
                    | custom0_jj_init_im_ena  & state_is_idle
                    | custom0_jj_init_fs_ena  & state_is_idle
                    | custom0_jj_init_pw_ena  & state_is_idle
                    | custom0_jj_init_imaddr_ena  & state_is_idle
+                   | custom0_jj_init_bias_ena  & state_is_idle
                    | custom0_jj_loop_ena  & state_is_idle
                    | rowsum_end & state_is_rowsum
                    | state_is_setup
@@ -555,6 +663,7 @@ module sirv_eai_core (
                    | state_is_jj_init_fs
                    | state_is_jj_init_pw
                    | state_is_jj_init_imaddr
+                   | state_is_jj_init_bias
                    | state_is_jj_loop & jj_loop_ret
                    ;
 
@@ -590,11 +699,12 @@ module sirv_eai_core (
    assign eai_rsp_err = 1'b0;   	  
    assign eai_active = 1'b1;
    assign eai_req_ready = (state_is_idle) ? 1'b1 : 1'b0;
-   assign eai_icb_cmd_valid = eai_icb_cmd_valid_r | load_data_valid | conv_init_valid_r4;
+   assign eai_icb_cmd_valid = eai_icb_cmd_valid_r | load_data_valid | conv_init_valid_r4 | conv_init_valid_first_r1 | conv_init_valid_r5;
    assign eai_icb_cmd_addr =   {32{state_is_rowsum}} & eai_icb_cmd_addr_r 
                              | {32{state_is_jj_loop & load_im_valid}} & im_in_real_addr 
                              | {32{state_is_jj_loop & load_wt_valid}} & wt_real_addr
                              | {32{conv_init_valid_r4}} & im_out_real_addr
+                             | {32{conv_init_valid_r5 | conv_init_valid_first_r1}} & bias_real_addr
                              ;
    assign eai_icb_cmd_wdata = (conv_init_valid_r4) ? {{8{jj_loop_byte3}}&im_out , 
                                                       {8{jj_loop_byte2}}&im_out , 
@@ -603,7 +713,7 @@ module sirv_eai_core (
    assign eai_icb_cmd_size = (state_is_jj_loop) ? 2'b00 : 2'b10;
    assign eai_icb_rsp_ready = 1'b1;
    assign eai_icb_cmd_read = (conv_init_valid_r4) ? 1'b0 : 1'b1;
-   assign eai_mem_holdup =  (state_is_rowsum | state_is_jj_loop) ? 1'b1 : 1'b0;
+   assign eai_mem_holdup =  (state_is_rowsum | state_is_jj_loop | state_is_jj_relu_q7) ? 1'b1 : 1'b0;
  
    assign eai_rsp_valid = ( state_is_setup  
                           | state_is_colsum 
@@ -613,7 +723,10 @@ module sirv_eai_core (
                           | state_is_jj_init_fs 
                           | state_is_jj_init_pw 
                           | state_is_jj_init_imaddr
+                          | state_is_jj_init_bias
                           | jj_loop_ret
                           ) ? 1'b1 : 1'b0;
+
+
 
 endmodule

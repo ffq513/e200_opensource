@@ -42,7 +42,7 @@
 `define E203_CFG_HAS_ITCM
     // 64KB have address 16bits wide
     //   The depth is 64*1024*8/64=8192
-`define E203_CFG_ITCM_ADDR_WIDTH  16
+`define E203_CFG_ITCM_ADDR_WIDTH  18
 
 //    // 1024KB have address 20bits wide
 //    //   The depth is 1024*1024*8/64=131072
@@ -97,4 +97,4 @@
 `define E203_CFG_HAS_EAI
 `define E203_CFG_SUPPORT_SHARE_MULDIV
 `define E203_CFG_SUPPORT_AMO
-`define E203_CFG_DTCM_ADDR_WIDTH 16
+`define E203_CFG_DTCM_ADDR_WIDTH 18
