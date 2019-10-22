@@ -343,13 +343,13 @@ module sirv_eai_core (
    wire store_im_out;
    wire re_conv_out;
 
-   wire [`E203_ADDR_SIZE-1:0] in_row ;
-   wire [`E203_ADDR_SIZE-1:0] in_col ;
-   wire in_row_is_not_negative = (in_row >= 0);
-   wire in_col_is_not_negative = (in_col >= 0);
+   wire [31:0] in_row ;
+   wire [31:0] in_col ;
+   wire in_row_is_not_negative = ($signed(in_row) >= 0);
+   wire in_col_is_not_negative = ($signed(in_col) >= 0);
 
-   wire in_row_loop = (in_row < dim_im_in_r);
-   wire in_col_loop = (in_col < dim_im_in_r);
+   wire in_row_loop = ($signed(in_row) < dim_im_in_r);
+   wire in_col_loop = ($signed(in_col) < dim_im_in_r);
 
    wire cnt_l_start = in_row_is_not_negative & in_col_is_not_negative & in_row_loop & in_col_loop;
 
@@ -357,16 +357,16 @@ module sirv_eai_core (
    wire [`E203_ADDR_SIZE-1:0] cnt_l_max = ch_im_in_r - 32'b1;
    wire cnt_l_loop = (cnt_l_r < cnt_l_max);
    wire cnt_l_end =  (cnt_l_r == cnt_l_max);  
-   wire [`E203_ADDR_SIZE-1:0] cnt_l_nxt = (cnt_l_loop) ? cnt_l_r + 1'b1 : 32'b0;
+   wire [`E203_ADDR_SIZE-1:0] cnt_l_nxt = (cnt_l_loop & state_is_jj_loop) ? cnt_l_r + 1'b1 : 32'b0;
 
    wire [1:0] cnt_load_dat_r;
    wire load_dat_end = (cnt_load_dat_r == 2'b1);
-   wire cnt_load_dat_ena = state_is_jj_loop & cnt_l_start & (~store_im_out) & (~re_conv_out);
-   wire [1:0] cnt_load_dat_nxt = (load_dat_end) ? 2'b0 : cnt_load_dat_r + 2'b1;
+   wire cnt_load_dat_ena = state_is_jj_loop & cnt_l_start & (~store_im_out) & (~re_conv_out) | state_is_idle;
+   wire [1:0] cnt_load_dat_nxt = (load_dat_end | state_is_idle) ? 2'b0 : cnt_load_dat_r + 2'b1;
    sirv_gnrl_dfflr #(2) cnt_load_dat_dfflr (cnt_load_dat_ena, cnt_load_dat_nxt, cnt_load_dat_r, eai_clk, eai_rst_n);
 
    wire load_dat_fi = load_dat_end & (~store_im_out) & (~re_conv_out);
-   wire cnt_l_ena = state_is_jj_loop & ( cnt_l_end | cnt_l_start & cnt_l_loop ) & load_dat_fi;
+   wire cnt_l_ena = state_is_jj_loop & ( cnt_l_end | cnt_l_start & cnt_l_loop ) & load_dat_fi | state_is_idle;
    sirv_gnrl_dfflr #(`E203_ADDR_SIZE) cnt_l_dfflr (cnt_l_ena, cnt_l_nxt, cnt_l_r, eai_clk, eai_rst_n);
 
    wire [`E203_ADDR_SIZE-1:0] cnt_n_r;
@@ -576,46 +576,55 @@ module sirv_eai_core (
    wire [`E203_ADDR_SIZE-1:0] conv_out_r;
 
    wire [`E203_ADDR_SIZE-1:0] conv_out_init_r;
-   wire [`E203_ADDR_SIZE-1:0] conv_out_init_nxt = (bias_real_32 << bias_shift) + ( ($signed(1) << out_shift) >> 1 );
+   wire [`E203_ADDR_SIZE-1:0] conv_out_init_nxt = ($signed(bias_real_32) << bias_shift) + ( ($unsigned(1) << out_shift) >> 1 );
 
-   wire cnt_i_ena_r;
-   sirv_gnrl_dffr #(1) cnt_i_ena_r_dffr (cnt_i_ena, cnt_i_ena_r, eai_clk, eai_rst_n);
+  // wire cnt_i_ena_r;
+  // sirv_gnrl_dffr #(1) cnt_i_ena_r_dffr (cnt_i_ena, cnt_i_ena_r, eai_clk, eai_rst_n);
 
-   wire cnt_i_ena_r1;
-   sirv_gnrl_dffr #(1) cnt_i_ena_r1_dffr (cnt_i_ena_r, cnt_i_ena_r1, eai_clk, eai_rst_n);
+  // wire cnt_i_ena_r1;
+  // sirv_gnrl_dffr #(1) cnt_i_ena_r1_dffr (cnt_i_ena_r, cnt_i_ena_r1, eai_clk, eai_rst_n);
    
-   wire conv_out_init_ena = conv_init_valid_r6 | conv_init_valid_first_r2 | cnt_i_ena_r1;
+   wire conv_out_init_ena = conv_init_valid_r6 | conv_init_valid_first_r2 ;
    
    sirv_gnrl_dfflr #(`E203_ADDR_SIZE) conv_out_init_dfflr (conv_out_init_ena, conv_out_init_nxt, conv_out_init_r, eai_clk, eai_rst_n);
 
    wire [`E203_ADDR_SIZE-1:0] conv_out_init = (conv_init_valid_r6 | conv_init_valid_first_r5) ? conv_out_init_r : conv_out_r;
-   wire [`E203_ADDR_SIZE-1:0] conv_out_nxt = ({8{byte_im_pk_r[0]}} & (im_in_value_r[07:00]) |    
-                                              {8{byte_im_pk_r[1]}} & (im_in_value_r[15:08]) |   
-                                              {8{byte_im_pk_r[2]}} & (im_in_value_r[23:16]) |   
-                                              {8{byte_im_pk_r[3]}} & (im_in_value_r[31:24])
-                                             ) 
-                                             *
-                                             ( 
-                                              {8{byte_wt_pk_r[0]}} & (wt_value_r[07:00]) | 
-                                              {8{byte_wt_pk_r[1]}} & (wt_value_r[15:08]) |
-                                              {8{byte_wt_pk_r[2]}} & (wt_value_r[23:16]) |
-                                              {8{byte_wt_pk_r[3]}} & (wt_value_r[31:24]) 
-                                             ) 
-                                             +
-                                             conv_out_init;
+   
+   wire [7:0] im_i = ({8{byte_im_pk_r[0]}} & (im_in_value_r[07:00]) |    
+                      {8{byte_im_pk_r[1]}} & (im_in_value_r[15:08]) |   
+                      {8{byte_im_pk_r[2]}} & (im_in_value_r[23:16]) |   
+                      {8{byte_im_pk_r[3]}} & (im_in_value_r[31:24])
+                     )
+                     ;
+
+   wire [7:0] wt_i = ( 
+                      {8{byte_wt_pk_r[0]}} & (wt_value_r[07:00]) | 
+                      {8{byte_wt_pk_r[1]}} & (wt_value_r[15:08]) |
+                      {8{byte_wt_pk_r[2]}} & (wt_value_r[23:16]) |
+                      {8{byte_wt_pk_r[3]}} & (wt_value_r[31:24]) 
+                     )
+                     ;
+
+ //  wire [31:0] im_ex = {24{im_i[7]},im_i};
+ //  wire [31:0] wt_ex = {24{wt_i[7]},wt_i};
+
+   wire [`E203_ADDR_SIZE-1:0] conv_out_nxt = (conv_init_valid_r6) ? $signed(im_i) * $signed(wt_i) + $signed(conv_out_init_nxt) : 
+                                                                    $signed(im_i) * $signed(wt_i) + $signed(conv_out_init);
+
    wire conv_out_ena = (conv_out_valid_r & ~conv_init_valid_r4) | conv_init_valid_r6;
 
    sirv_gnrl_dfflr #(`E203_ADDR_SIZE) conv_out_dfflr (conv_out_ena, conv_out_nxt, conv_out_r, eai_clk, eai_rst_n);
 
-   wire [31:0] conv_out_shift = (conv_out_r >> out_shift);
+   wire [31:0] conv_out_shift = ($signed(conv_out_r) >>> out_shift);
 
-   wire conv_out_max = | conv_out_shift[30:7];
-   wire conv_out_min = | conv_out_shift[30:8];
+   //wire conv_out_max = | conv_out_shift[30:7];
+   //wire conv_out_min = | conv_out_shift[30:8];
 
-   wire [31:0] ssat_max = (~conv_out_shift[31]) & conv_out_max ;
-   wire [31:0] ssat_min = (conv_out_shift[31]) & conv_out_min;
 
-   wire [7:0] im_out = (ssat_max) ? 8'd127 : (ssat_min) ? -8'd128 : conv_out_shift[7:0]
+   wire  ssat_max = ($signed(conv_out_shift) > $signed(32'd127));
+   wire  ssat_min = ($signed(conv_out_shift) < $signed(-32'd128));
+
+   wire [31:0] im_out = (ssat_max) ? $signed(32'd127) : (ssat_min) ? $signed(-32'd128) : $signed(conv_out_shift)
                                        ;
    wire jj_loop_ret_r;
    wire jj_loop_ret_set = cnt_ijkmnl_end;
@@ -740,16 +749,18 @@ module sirv_eai_core (
                              | {32{conv_init_valid_r4}} & im_out_real_addr
                              | {32{conv_init_valid_r5 | conv_init_valid_first_r1}} & bias_real_addr
                              ;
-   assign eai_icb_cmd_wdata = (conv_init_valid_r4) ? {{8{jj_loop_byte3}}&im_out , 
-                                                      {8{jj_loop_byte2}}&im_out , 
-                                                      {8{jj_loop_byte1}}&im_out , 
-                                                      {8{jj_loop_byte0}}&im_out} : 8'b0;
+   assign eai_icb_cmd_wdata = (conv_init_valid_r4) ? {{8{jj_loop_byte3}}&$signed(im_out[7:0]) , 
+                                                      {8{jj_loop_byte2}}&$signed(im_out[7:0]) , 
+                                                      {8{jj_loop_byte1}}&$signed(im_out[7:0]) , 
+                                                      {8{jj_loop_byte0}}&$signed(im_out[7:0])} : 32'b0;
    assign eai_icb_cmd_size = (state_is_jj_loop) ? 2'b00 : 2'b10;
    assign eai_icb_rsp_ready = 1'b1;
    assign eai_icb_cmd_read = (conv_init_valid_r4) ? 1'b0 : 1'b1;
    assign eai_mem_holdup =  (state_is_rowsum | state_is_jj_loop | state_is_jj_relu_q7) ? 1'b1 : 1'b0;
  
-   assign eai_rsp_valid = ( state_is_setup  
+
+
+   wire eai_rsp_valid_ena = ( state_is_setup  
                           | state_is_colsum 
                           | rowsum_end
                           | state_is_jj_init_ch 
@@ -759,8 +770,20 @@ module sirv_eai_core (
                           | state_is_jj_init_imaddr
                           | state_is_jj_init_bias
                           | jj_loop_ret
-                          ) ? 1'b1 : 1'b0;
+                          );
 
+
+   wire rsp_r;
+   wire rsp_set = eai_rsp_valid_ena & ~eai_rsp_ready;
+   wire rsp_clr = rsp_r & eai_rsp_ready;
+   wire rsp_ena = rsp_set | rsp_clr;
+   wire rsp_nxt = rsp_set ;
+   sirv_gnrl_dfflr #(1) rsp_r_dfflr (rsp_ena, rsp_nxt, rsp_r, eai_clk, eai_rst_n);
+
+
+
+
+   assign eai_rsp_valid = rsp_r | eai_rsp_valid_ena;
 
 
 endmodule
