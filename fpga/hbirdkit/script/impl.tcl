@@ -5,8 +5,8 @@ read_ip [glob -directory $ipdir [file join * {*.xci}]]
 synth_design -include_dirs ${wrkdir}/../../install/rtl/core/ -top $top -flatten_hierarchy rebuilt
 write_checkpoint -force [file join $wrkdir post_synth]
 
-opt_design
-write_checkpoint -force [file join $wrkdir post_opt]
+#opt_design
+#write_checkpoint -force [file join $wrkdir post_opt]
 
 place_design
 write_checkpoint -force [file join $wrkdir post_place]

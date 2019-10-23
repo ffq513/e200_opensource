@@ -1,7 +1,6 @@
 SIM_DIR     := ${PWD}
 RUN_DIR      := ${PWD}/run
-#TESTNAME     := nn
-TESTNAME     := cifar10
+TESTNAME     := nn
 TESTCASE     := ${RUN_DIR}/../../riscv-tools/riscv-tests/isa/generated/${TESTNAME}
 DUMPWAVE     := 1
 CORE        := e203
