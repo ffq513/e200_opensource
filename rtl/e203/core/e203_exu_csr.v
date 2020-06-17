@@ -28,7 +28,7 @@
 
 module e203_exu_csr(
   input nonflush_cmt_ena,
-  output eai_xs_off,
+  output nice_xs_off,
 
   input csr_ena,
   input csr_wr_en,
@@ -204,7 +204,7 @@ wire status_sd_r = (status_fs_r == 2'b11) | (status_xs_r == 2'b11);
 `ifndef E203_HAS_EAI
    // If no EAI coprocessor interface configured, the XS is just hardwired to 0
 assign status_xs_r = 2'b0; 
-assign eai_xs_off = 1'b0;// We just make this signal to 0
+assign nice_xs_off = 1'b0;// We just make this signal to 0
 `endif
 
 //////////////////////////

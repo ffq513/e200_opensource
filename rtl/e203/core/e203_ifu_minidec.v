@@ -90,9 +90,9 @@ module e203_ifu_minidec(
   .dec_imm(),
   .dec_pc(),
 
-  .dec_eai   (),
-  .eai_xs_off(1'b0),  
-  .eai_cmt_off_ilgl_o(),
+  .dec_nice   (),
+  .nice_xs_off(1'b0),  
+  .nice_cmt_off_ilgl_o(),
  
   .dec_rs1x0_1 (),
   .dec_rs2x0_1 (),

@@ -84,24 +84,24 @@ module e203_lsu_ctrl(
   //////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////
   // The EAI ICB Interface to LSU-ctrl
-  input                          eai_mem_holdup,
+  input                          nice_mem_holdup,
   //    * Bus cmd channel
-  input                          eai_icb_cmd_valid,
-  output                         eai_icb_cmd_ready,
-  input  [`E203_ADDR_SIZE-1:0]   eai_icb_cmd_addr, 
-  input                          eai_icb_cmd_read, 
-  input  [`E203_XLEN-1:0]        eai_icb_cmd_wdata,
-  input  [`E203_XLEN/8-1:0]      eai_icb_cmd_wmask,
-  input                          eai_icb_cmd_lock,
-  input                          eai_icb_cmd_excl,
-  input  [1:0]                   eai_icb_cmd_size,
+  input                          nice_icb_cmd_valid,
+  output                         nice_icb_cmd_ready,
+  input  [`E203_ADDR_SIZE-1:0]   nice_icb_cmd_addr, 
+  input                          nice_icb_cmd_read, 
+  input  [`E203_XLEN-1:0]        nice_icb_cmd_wdata,
+  input  [`E203_XLEN/8-1:0]      nice_icb_cmd_wmask,
+  input                          nice_icb_cmd_lock,
+  input                          nice_icb_cmd_excl,
+  input  [1:0]                   nice_icb_cmd_size,
 
   //    * Bus RSP channel
-  output                         eai_icb_rsp_valid,
-  input                          eai_icb_rsp_ready,
-  output                         eai_icb_rsp_err  ,
-  output                         eai_icb_rsp_excl_ok,
-  output [`E203_XLEN-1:0]        eai_icb_rsp_rdata,
+  output                         nice_icb_rsp_valid,
+  input                          nice_icb_rsp_ready,
+  output                         nice_icb_rsp_err  ,
+  output                         nice_icb_rsp_excl_ok,
+  output [`E203_XLEN-1:0]        nice_icb_rsp_rdata,
 
 
 
@@ -206,8 +206,8 @@ module e203_lsu_ctrl(
   // The EAI mem holdup signal will override other request to LSU-Ctrl
   wire agu_icb_cmd_valid_pos;
   wire agu_icb_cmd_ready_pos;
-  assign agu_icb_cmd_valid_pos = (~eai_mem_holdup) & agu_icb_cmd_valid;
-  assign agu_icb_cmd_ready     = (~eai_mem_holdup) & agu_icb_cmd_ready_pos;
+  assign agu_icb_cmd_valid_pos = (~nice_mem_holdup) & agu_icb_cmd_valid;
+  assign agu_icb_cmd_ready     = (~nice_mem_holdup) & agu_icb_cmd_ready_pos;
 
       `ifndef E203_HAS_FPU
       localparam LSU_ARBT_I_NUM   = 2;
@@ -231,10 +231,10 @@ module e203_lsu_ctrl(
   //
   //
 
-  wire [`E203_XLEN_MW-1:0] eai_icb_cmd_wr_mask = 
-            ({`E203_XLEN_MW{eai_icb_cmd_size == 2'b00 }} & (4'b0001 << eai_icb_cmd_addr[1:0]))
-          | ({`E203_XLEN_MW{eai_icb_cmd_size == 2'b01 }} & (4'b0011 << {eai_icb_cmd_addr[1],1'b0}))
-          | ({`E203_XLEN_MW{eai_icb_cmd_size == 2'b10 }} & (4'b1111));
+  wire [`E203_XLEN_MW-1:0] nice_icb_cmd_wr_mask = 
+            ({`E203_XLEN_MW{nice_icb_cmd_size == 2'b00 }} & (4'b0001 << nice_icb_cmd_addr[1:0]))
+          | ({`E203_XLEN_MW{nice_icb_cmd_size == 2'b01 }} & (4'b0011 << {nice_icb_cmd_addr[1],1'b0}))
+          | ({`E203_XLEN_MW{nice_icb_cmd_size == 2'b10 }} & (4'b1111));
 
 
   wire                  pre_agu_icb_rsp_valid;
@@ -263,7 +263,7 @@ module e203_lsu_ctrl(
         ,agu_icb_cmd_addr 
         ,agu_icb_cmd_excl 
       };
-  wire [USR_W-1:0] eai_icb_cmd_usr = {USR_W-1{1'b0}};
+  wire [USR_W-1:0] nice_icb_cmd_usr = {USR_W-1{1'b0}};
   wire [USR_W-1:0] fpu_icb_cmd_usr = {USR_W-1{1'b0}};
 
   wire [USR_W-1:0]      pre_agu_icb_rsp_usr;
@@ -279,7 +279,7 @@ module e203_lsu_ctrl(
         ,pre_agu_icb_rsp_excl 
       } = pre_agu_icb_rsp_usr;
   
-  wire [USR_W-1:0] eai_icb_rsp_usr;
+  wire [USR_W-1:0] nice_icb_rsp_usr;
   wire [USR_W-1:0] fpu_icb_rsp_usr;
 
   wire arbt_icb_cmd_valid;
@@ -328,45 +328,45 @@ module e203_lsu_ctrl(
       // The EAI take higher priority
                            {
                              agu_icb_cmd_valid
-                           , eai_icb_cmd_valid
+                           , nice_icb_cmd_valid
                            } ;
 
   assign arbt_bus_icb_cmd_valid =
       // The EAI take higher priority
                            {
                              agu_icb_cmd_valid_pos
-                           , eai_icb_cmd_valid
+                           , nice_icb_cmd_valid
                            } ;
 
   assign arbt_bus_icb_cmd_addr =
                            {
                              agu_icb_cmd_addr
-                           , eai_icb_cmd_addr
+                           , nice_icb_cmd_addr
                            } ;
 
   assign arbt_bus_icb_cmd_read =
                            {
                              agu_icb_cmd_read
-                           , eai_icb_cmd_read
+                           , nice_icb_cmd_read
                            } ;
 
   assign arbt_bus_icb_cmd_wdata =
                            {
                              agu_icb_cmd_wdata
-                           , eai_icb_cmd_wdata
+                           , nice_icb_cmd_wdata
                            } ;
 
   assign arbt_bus_icb_cmd_wmask =
                            {
                              agu_icb_cmd_wmask
-                           //, eai_icb_cmd_wmask
-                           ,eai_icb_cmd_wr_mask
+                           //, nice_icb_cmd_wmask
+                           ,nice_icb_cmd_wr_mask
                            } ;
                          
   assign arbt_bus_icb_cmd_lock =
                            {
                              agu_icb_cmd_lock
-                           , eai_icb_cmd_lock
+                           , nice_icb_cmd_lock
                            } ;
 
   assign arbt_bus_icb_cmd_burst =
@@ -384,57 +384,57 @@ module e203_lsu_ctrl(
   assign arbt_bus_icb_cmd_excl =
                            {
                              agu_icb_cmd_excl
-                           , eai_icb_cmd_excl
+                           , nice_icb_cmd_excl
                            } ;
                            
   assign arbt_bus_icb_cmd_size =
                            {
                              agu_icb_cmd_size
-                           , eai_icb_cmd_size
+                           , nice_icb_cmd_size
                            } ;
 
   assign arbt_bus_icb_cmd_usr =
                            {
                              agu_icb_cmd_usr
-                           , eai_icb_cmd_usr
+                           , nice_icb_cmd_usr
                            } ;
 
   assign                   {
                              agu_icb_cmd_ready_pos
-                           , eai_icb_cmd_ready
+                           , nice_icb_cmd_ready
                            } = arbt_bus_icb_cmd_ready;
                            
 
   //RSP Channel
   assign                   {
                              pre_agu_icb_rsp_valid
-                           , eai_icb_rsp_valid
+                           , nice_icb_rsp_valid
                            } = arbt_bus_icb_rsp_valid;
 
   assign                   {
                              pre_agu_icb_rsp_err
-                           , eai_icb_rsp_err
+                           , nice_icb_rsp_err
                            } = arbt_bus_icb_rsp_err;
 
   assign                   {
                              pre_agu_icb_rsp_excl_ok
-                           , eai_icb_rsp_excl_ok
+                           , nice_icb_rsp_excl_ok
                            } = arbt_bus_icb_rsp_excl_ok;
 
 
   assign                   {
                              pre_agu_icb_rsp_rdata
-                           , eai_icb_rsp_rdata
+                           , nice_icb_rsp_rdata
                            } = arbt_bus_icb_rsp_rdata;
 
   assign                   {
                              pre_agu_icb_rsp_usr
-                           , eai_icb_rsp_usr
+                           , nice_icb_rsp_usr
                            } = arbt_bus_icb_rsp_usr;
 
   assign arbt_bus_icb_rsp_ready = {
                              pre_agu_icb_rsp_ready
-                           , eai_icb_rsp_ready
+                           , nice_icb_rsp_ready
                            };
 
   sirv_gnrl_icb_arbt # (

@@ -72,10 +72,10 @@ module e203_exu_decode(
   output dec_ilegl,
 
   //////////////////////////////////////
-  //eai decode
-  input  eai_xs_off,  
-  output dec_eai,
-  output eai_cmt_off_ilgl_o,      
+  //nice decode
+  input  nice_xs_off,  
+  output dec_nice,
+  output nice_cmt_off_ilgl_o,      
 
   /////////////////////////////////////
   //dsp dec
@@ -357,22 +357,22 @@ module e203_exu_decode(
 
   
   // ==========================================================================
-  // add eai logic 
+  // add nice logic 
 
-  wire eai_need_rs1 = rv32_instr[13];
-  wire eai_need_rs2 = rv32_instr[12];
-  wire eai_need_rd  = rv32_instr[14];
-  wire [31:5] eai_instr  = rv32_instr[31:5];
+  wire nice_need_rs1 = rv32_instr[13];
+  wire nice_need_rs2 = rv32_instr[12];
+  wire nice_need_rd  = rv32_instr[14];
+  wire [31:5] nice_instr  = rv32_instr[31:5];
 
-  wire eai_op = rv32_custom0 | rv32_custom1 | rv32_custom2 | rv32_custom3;
-  assign dec_eai = eai_op;
+  wire nice_op = rv32_custom0 | rv32_custom1 | rv32_custom2 | rv32_custom3;
+  assign dec_nice = nice_op;
   
-  assign eai_cmt_off_ilgl_o = eai_xs_off & eai_op;
+  assign nice_cmt_off_ilgl_o = nice_xs_off & nice_op;
 
-  wire [`E203_DECINFO_EAI_WIDTH-1:0] eai_info_bus;
-  assign eai_info_bus[`E203_DECINFO_GRP    ]    = `E203_DECINFO_GRP_EAI;
-  assign eai_info_bus[`E203_DECINFO_RV32   ]    = rv32;
-  assign eai_info_bus[`E203_DECINFO_EAI_INSTR]  = eai_instr;
+  wire [`E203_DECINFO_EAI_WIDTH-1:0] nice_info_bus;
+  assign nice_info_bus[`E203_DECINFO_GRP    ]    = `E203_DECINFO_GRP_EAI;
+  assign nice_info_bus[`E203_DECINFO_RV32   ]    = rv32;
+  assign nice_info_bus[`E203_DECINFO_EAI_INSTR]  = nice_instr;
 
   // ===========================================================================
   // Branch Instructions
@@ -1743,7 +1743,7 @@ module e203_exu_decode(
   //   * ecall, ebreak  
   wire rv32_need_rd = 
                       (~rv32_rd_x0) & (
-                      eai_op ? eai_need_rd :
+                      nice_op ? nice_need_rd :
                     (
                       (~rv32_branch) & (~rv32_store)
                     & (~rv32_fence_fencei)
@@ -1762,7 +1762,7 @@ module e203_exu_decode(
   //   * csrrci
   wire rv32_need_rs1 =
                       (~rv32_rs1_x0) & (
-                      eai_op ? eai_need_rs1 :
+                      nice_op ? nice_need_rs1 :
                     (
                      
                       (~rv32_lui)
@@ -1782,7 +1782,7 @@ module e203_exu_decode(
   //   * rv32_op
   //   * rv32_amo except the rv32_lr_w
   wire rv32_need_rs2 = (~rv32_rs2_x0) & (
-                 eai_op ? eai_need_rs2 :
+                 nice_op ? nice_need_rs2 :
                 (
                 
                  (rv32_branch)
@@ -2087,7 +2087,7 @@ module e203_exu_decode(
             | ({`E203_DECINFO_WIDTH{bjp_op}}     & {{`E203_DECINFO_WIDTH-`E203_DECINFO_BJP_WIDTH{1'b0}},bjp_info_bus})
             | ({`E203_DECINFO_WIDTH{csr_op}}     & {{`E203_DECINFO_WIDTH-`E203_DECINFO_CSR_WIDTH{1'b0}},csr_info_bus})
             | ({`E203_DECINFO_WIDTH{muldiv_op}}  & {{`E203_DECINFO_WIDTH-`E203_DECINFO_CSR_WIDTH{1'b0}},muldiv_info_bus})
-            | ({`E203_DECINFO_WIDTH{eai_op}}     & {{`E203_DECINFO_WIDTH-`E203_DECINFO_EAI_WIDTH{1'b0}},eai_info_bus})
+            | ({`E203_DECINFO_WIDTH{nice_op}}     & {{`E203_DECINFO_WIDTH-`E203_DECINFO_EAI_WIDTH{1'b0}},nice_info_bus})
             | ({`E203_DECINFO_WIDTH{dsp_op}}     & {{`E203_DECINFO_WIDTH-`E203_DECINFO_DSP_WIDTH{1'b0}},dsp_info_bus})
               ;
 
@@ -2098,7 +2098,7 @@ module e203_exu_decode(
             | bjp_op
             | csr_op
             | muldiv_op
-            | eai_op
+            | nice_op
             | dsp_op
             ;
 
