@@ -83,7 +83,7 @@ module e203_lsu_ctrl(
 
   //////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////
-  // The EAI ICB Interface to LSU-ctrl
+  // The NICE ICB Interface to LSU-ctrl
   input                          nice_mem_holdup,
   //    * Bus cmd channel
   input                          nice_icb_cmd_valid,
@@ -203,7 +203,7 @@ module e203_lsu_ctrl(
   input  rst_n
   );
 
-  // The EAI mem holdup signal will override other request to LSU-Ctrl
+  // The NICE mem holdup signal will override other request to LSU-Ctrl
   wire agu_icb_cmd_valid_pos;
   wire agu_icb_cmd_ready_pos;
   assign agu_icb_cmd_valid_pos = (~nice_mem_holdup) & agu_icb_cmd_valid;
@@ -325,14 +325,14 @@ module e203_lsu_ctrl(
   //CMD Channel
   wire [LSU_ARBT_I_NUM*1-1:0] arbt_bus_icb_cmd_valid_raw;
   assign arbt_bus_icb_cmd_valid_raw =
-      // The EAI take higher priority
+      // The NICE take higher priority
                            {
                              agu_icb_cmd_valid
                            , nice_icb_cmd_valid
                            } ;
 
   assign arbt_bus_icb_cmd_valid =
-      // The EAI take higher priority
+      // The NICE take higher priority
                            {
                              agu_icb_cmd_valid_pos
                            , nice_icb_cmd_valid

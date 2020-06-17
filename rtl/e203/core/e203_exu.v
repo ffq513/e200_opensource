@@ -165,7 +165,7 @@ module e203_exu(
   input                          agu_icb_rsp_excl_ok,
   input  [`E203_XLEN-1:0]        agu_icb_rsp_rdata,
 
-  `ifdef E203_HAS_CSR_EAI//{
+  `ifdef E203_HAS_CSR_NICE//{
   output         nice_csr_valid,
   input          nice_csr_ready,
   output  [31:0] nice_csr_addr,
@@ -649,7 +649,7 @@ module e203_exu(
   e203_exu_alu u_e203_exu_alu(
 
 
-  `ifdef E203_HAS_CSR_EAI//{
+  `ifdef E203_HAS_CSR_NICE//{
     .nice_csr_valid (nice_csr_valid),
     .nice_csr_ready (nice_csr_ready),
     .nice_csr_addr  (nice_csr_addr ),

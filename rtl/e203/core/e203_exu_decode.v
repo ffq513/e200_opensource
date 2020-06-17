@@ -369,10 +369,10 @@ module e203_exu_decode(
   
   assign nice_cmt_off_ilgl_o = nice_xs_off & nice_op;
 
-  wire [`E203_DECINFO_EAI_WIDTH-1:0] nice_info_bus;
-  assign nice_info_bus[`E203_DECINFO_GRP    ]    = `E203_DECINFO_GRP_EAI;
+  wire [`E203_DECINFO_NICE_WIDTH-1:0] nice_info_bus;
+  assign nice_info_bus[`E203_DECINFO_GRP    ]    = `E203_DECINFO_GRP_NICE;
   assign nice_info_bus[`E203_DECINFO_RV32   ]    = rv32;
-  assign nice_info_bus[`E203_DECINFO_EAI_INSTR]  = nice_instr;
+  assign nice_info_bus[`E203_DECINFO_NICE_INSTR]  = nice_instr;
 
   // ===========================================================================
   // Branch Instructions
@@ -2087,7 +2087,7 @@ module e203_exu_decode(
             | ({`E203_DECINFO_WIDTH{bjp_op}}     & {{`E203_DECINFO_WIDTH-`E203_DECINFO_BJP_WIDTH{1'b0}},bjp_info_bus})
             | ({`E203_DECINFO_WIDTH{csr_op}}     & {{`E203_DECINFO_WIDTH-`E203_DECINFO_CSR_WIDTH{1'b0}},csr_info_bus})
             | ({`E203_DECINFO_WIDTH{muldiv_op}}  & {{`E203_DECINFO_WIDTH-`E203_DECINFO_CSR_WIDTH{1'b0}},muldiv_info_bus})
-            | ({`E203_DECINFO_WIDTH{nice_op}}     & {{`E203_DECINFO_WIDTH-`E203_DECINFO_EAI_WIDTH{1'b0}},nice_info_bus})
+            | ({`E203_DECINFO_WIDTH{nice_op}}     & {{`E203_DECINFO_WIDTH-`E203_DECINFO_NICE_WIDTH{1'b0}},nice_info_bus})
             | ({`E203_DECINFO_WIDTH{dsp_op}}     & {{`E203_DECINFO_WIDTH-`E203_DECINFO_DSP_WIDTH{1'b0}},dsp_info_bus})
               ;
 

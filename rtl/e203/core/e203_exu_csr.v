@@ -201,8 +201,8 @@ wire status_sd_r = (status_fs_r == 2'b11) | (status_xs_r == 2'b11);
 //    The XS field represents a summary of all extensions' status
     // But in E200 we implement XS exactly same as FS to make it usable by software to 
     //   disable extended accelerators
-`ifndef E203_HAS_EAI
-   // If no EAI coprocessor interface configured, the XS is just hardwired to 0
+`ifndef E203_HAS_NICE
+   // If no NICE coprocessor interface configured, the XS is just hardwired to 0
 assign status_xs_r = 2'b0; 
 assign nice_xs_off = 1'b0;// We just make this signal to 0
 `endif

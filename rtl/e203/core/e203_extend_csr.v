@@ -28,7 +28,7 @@
 // ====================================================================
 `include "e203_defines.v"
 
-`ifdef E203_HAS_CSR_EAI//{
+`ifdef E203_HAS_CSR_NICE//{
 module e203_extend_csr(
 
   // The Handshake Interface 

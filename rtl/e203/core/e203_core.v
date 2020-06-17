@@ -30,7 +30,7 @@
 module e203_core(
   output[`E203_PC_SIZE-1:0] inspect_pc,
 
-  `ifdef E203_HAS_CSR_EAI//{
+  `ifdef E203_HAS_CSR_NICE//{
   output         nice_csr_valid,
   input          nice_csr_ready,
   output  [31:0] nice_csr_addr,
@@ -489,7 +489,7 @@ module e203_core(
 
   e203_exu u_e203_exu(
 
-  `ifdef E203_HAS_CSR_EAI//{
+  `ifdef E203_HAS_CSR_NICE//{
     .nice_csr_valid (nice_csr_valid),
     .nice_csr_ready (nice_csr_ready),
     .nice_csr_addr  (nice_csr_addr ),

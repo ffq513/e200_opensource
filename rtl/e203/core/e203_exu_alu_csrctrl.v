@@ -49,7 +49,7 @@ module e203_exu_alu_csrctrl(
   output [`E203_XLEN-1:0] wbck_csr_dat,
 
   
-  `ifdef E203_HAS_CSR_EAI//{
+  `ifdef E203_HAS_CSR_NICE//{
   output         csr_sel_nice,
   input          nice_xs_off,
   output         nice_csr_valid,
@@ -76,18 +76,18 @@ module e203_exu_alu_csrctrl(
   );
 
 
-  `ifdef E203_HAS_CSR_EAI//{
-      // If accessed the EAI CSR range then we need to check if the EAI CSR is ready
+  `ifdef E203_HAS_CSR_NICE//{
+      // If accessed the NICE CSR range then we need to check if the NICE CSR is ready
   assign csr_sel_nice        = (csr_idx[11:8] == 4'hE);
   wire sel_nice            = csr_sel_nice & (~nice_xs_off);
   wire addi_condi         = sel_nice ? nice_csr_ready : 1'b1; 
 
   assign csr_o_valid      = csr_i_valid
                             & addi_condi; // Need to make sure the nice_csr-ready is ready to make sure
-                                          //  it can be sent to EAI and O interface same cycle
+                                          //  it can be sent to NICE and O interface same cycle
   assign nice_csr_valid    = sel_nice & csr_i_valid & 
                             csr_o_ready;// Need to make sure the o-ready is ready to make sure
-                                        //  it can be sent to EAI and O interface same cycle
+                                        //  it can be sent to NICE and O interface same cycle
 
   assign csr_i_ready      = sel_nice ? (nice_csr_ready & csr_o_ready) : csr_o_ready; 
 

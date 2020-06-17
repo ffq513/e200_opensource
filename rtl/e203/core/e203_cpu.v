@@ -437,7 +437,7 @@ module e203_cpu #(
   wire [`E203_XLEN-1:0]              lsu2dtcm_icb_rsp_rdata;
   `endif//}
 
-  `ifdef E203_HAS_CSR_EAI//{
+  `ifdef E203_HAS_CSR_NICE//{
   wire         nice_csr_valid;
   wire         nice_csr_ready;
   wire  [31:0] nice_csr_addr;
@@ -445,7 +445,7 @@ module e203_cpu #(
   wire  [31:0] nice_csr_wdata;
   wire  [31:0] nice_csr_rdata;
 
-  // This is an empty module to just connect the EAI CSR interface, 
+  // This is an empty module to just connect the NICE CSR interface, 
   //  user can hack it to become a real one
   e203_extend_csr u_e203_extend_csr(
     .nice_csr_valid (nice_csr_valid),
@@ -520,7 +520,7 @@ module e203_cpu #(
     .inspect_pc            (inspect_pc),
 
 
-  `ifdef E203_HAS_CSR_EAI//{
+  `ifdef E203_HAS_CSR_NICE//{
     .nice_csr_valid (nice_csr_valid),
     .nice_csr_ready (nice_csr_ready),
     .nice_csr_addr  (nice_csr_addr ),

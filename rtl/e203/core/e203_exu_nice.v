@@ -21,7 +21,7 @@
 // Designer   : Bob Hu
 //
 // Description:
-//  The EAI module to implement the
+//  The NICE module to implement the
 //
 // ====================================================================
 `include "e203_defines.v"

@@ -39,8 +39,8 @@ module e203_exu_alu(
   output i_longpipe, // Indicate this instruction is 
                      //   issued as a long pipe instruction
 
-  `ifdef E203_HAS_CSR_EAI//{
-  `ifndef E203_HAS_EAI
+  `ifdef E203_HAS_CSR_NICE//{
+  `ifndef E203_HAS_NICE
   input  nice_xs_off,
   `endif//
   output         nice_csr_valid,
@@ -208,7 +208,7 @@ module e203_exu_alu(
 `ifdef E203_SUPPORT_SHARE_MULDIV //{
   wire mdv_op = (~ifu_excp_op) & (i_info[`E203_DECINFO_GRP] == `E203_DECINFO_GRP_MULDIV); 
 `endif//E203_SUPPORT_SHARE_MULDIV}
-  wire nice_op = (~ifu_excp_op) & (i_info[`E203_DECINFO_GRP] == `E203_DECINFO_GRP_EAI);
+  wire nice_op = (~ifu_excp_op) & (i_info[`E203_DECINFO_GRP] == `E203_DECINFO_GRP_NICE);
 
   wire dsp_op = (~ifu_excp_op) & (i_info[`E203_DECINFO_GRP] == `E203_DECINFO_GRP_DSP); 
 
@@ -282,7 +282,7 @@ module e203_exu_alu(
   wire  [`E203_DECINFO_WIDTH-1:0]  csr_i_info  = {`E203_DECINFO_WIDTH{csr_op}} & i_info;  
   wire                             csr_i_rdwen =                      csr_op   & i_rdwen;  
 
-  `ifndef E203_HAS_EAI//{
+  `ifndef E203_HAS_NICE//{
   wire nice_o_cmt_wr_reg;
   wire csr_sel_nice;
   `endif//}
@@ -391,7 +391,7 @@ module e203_exu_alu(
 
 
 
-  `ifdef E203_HAS_CSR_EAI//{
+  `ifdef E203_HAS_CSR_NICE//{
     .csr_sel_nice      (csr_sel_nice),
     .nice_xs_off       (nice_xs_off),
     .nice_csr_valid    (nice_csr_valid),

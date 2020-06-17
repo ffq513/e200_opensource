@@ -109,7 +109,7 @@ module sirv_nice_core (
    wire custom0_jj_init_bias   = opcode_custom0 & rv32_func3_011 & rv32_func7_0001011;//11
    
 
-   parameter EAI_FSM = 4;
+   parameter NICE_FSM = 4;
    parameter IDLE    = 4'h0;
    parameter SETUP   = 4'h1;
    parameter ROWSUM  = 4'h2;
@@ -124,7 +124,7 @@ module sirv_nice_core (
    parameter JJ_RELU_SIZE  = 4'hb;
    parameter JJ_INIT_BIAS  = 4'hc;
    
-   wire [EAI_FSM-1:0] state_r;
+   wire [NICE_FSM-1:0] state_r;
 
    wire state_is_idle   = (state_r == IDLE);
    wire state_is_setup  = (state_r == SETUP);
@@ -154,7 +154,7 @@ module sirv_nice_core (
    wire custom0_jj_relu_size_ena = custom0_jj_relu_size & nice_req_hsked;
    wire custom0_jj_init_bias_ena = custom0_jj_init_bias & nice_req_hsked;
 
-   wire [EAI_FSM-1:0] next_state_idle  = custom0_setup_ena  ? SETUP  : 
+   wire [NICE_FSM-1:0] next_state_idle  = custom0_setup_ena  ? SETUP  : 
                                          custom0_rowsum_ena ? ROWSUM :
                                          custom0_colsum_ena ? COLSUM : 
                                          custom0_jj_init_ch_ena ? JJ_INIT_CH : 
@@ -167,32 +167,32 @@ module sirv_nice_core (
                                          custom0_jj_relu_size_ena ? JJ_RELU_SIZE :
                                          custom0_jj_init_bias_ena ? JJ_INIT_BIAS :
                                                                 IDLE   ;
-   wire [EAI_FSM-1:0] next_state_setup  = IDLE;
-   wire [EAI_FSM-1:0] next_state_rowsum = IDLE;
-   wire [EAI_FSM-1:0] next_state_colsum = IDLE;
-   wire [EAI_FSM-1:0] next_state_jj_init_ch = IDLE;
-   wire [EAI_FSM-1:0] next_state_jj_init_im = IDLE;
-   wire [EAI_FSM-1:0] next_state_jj_init_fs = IDLE;
-   wire [EAI_FSM-1:0] next_state_jj_init_pw = IDLE;
-   wire [EAI_FSM-1:0] next_state_jj_init_imaddr = IDLE;
-   wire [EAI_FSM-1:0] next_state_jj_loop = IDLE;
-   wire [EAI_FSM-1:0] next_state_jj_relu_q7 = IDLE;
-   wire [EAI_FSM-1:0] next_state_jj_relu_size = IDLE;
-   wire [EAI_FSM-1:0] next_state_jj_init_bias = IDLE;
+   wire [NICE_FSM-1:0] next_state_setup  = IDLE;
+   wire [NICE_FSM-1:0] next_state_rowsum = IDLE;
+   wire [NICE_FSM-1:0] next_state_colsum = IDLE;
+   wire [NICE_FSM-1:0] next_state_jj_init_ch = IDLE;
+   wire [NICE_FSM-1:0] next_state_jj_init_im = IDLE;
+   wire [NICE_FSM-1:0] next_state_jj_init_fs = IDLE;
+   wire [NICE_FSM-1:0] next_state_jj_init_pw = IDLE;
+   wire [NICE_FSM-1:0] next_state_jj_init_imaddr = IDLE;
+   wire [NICE_FSM-1:0] next_state_jj_loop = IDLE;
+   wire [NICE_FSM-1:0] next_state_jj_relu_q7 = IDLE;
+   wire [NICE_FSM-1:0] next_state_jj_relu_size = IDLE;
+   wire [NICE_FSM-1:0] next_state_jj_init_bias = IDLE;
 
-   wire [EAI_FSM-1:0] next_state =   {EAI_FSM{state_is_idle}}   & next_state_idle   
-                                   | {EAI_FSM{state_is_setup}}  & next_state_setup  
-                                   | {EAI_FSM{state_is_rowsum}} & next_state_rowsum 
-                                   | {EAI_FSM{state_is_colsum}} & next_state_colsum
-                                   | {EAI_FSM{state_is_jj_init_ch}} & next_state_jj_init_ch
-                                   | {EAI_FSM{state_is_jj_init_im}} & next_state_jj_init_im
-                                   | {EAI_FSM{state_is_jj_init_fs}} & next_state_jj_init_fs
-                                   | {EAI_FSM{state_is_jj_init_pw}} & next_state_jj_init_pw
-                                   | {EAI_FSM{state_is_jj_init_imaddr}} & next_state_jj_init_imaddr
-                                   | {EAI_FSM{state_is_jj_loop}} & next_state_jj_loop
-                                   | {EAI_FSM{state_is_jj_relu_q7}} & next_state_jj_relu_q7
-                                   | {EAI_FSM{state_is_jj_relu_size}} & next_state_jj_relu_size
-                                   | {EAI_FSM{state_is_jj_init_bias}} & next_state_jj_init_bias
+   wire [NICE_FSM-1:0] next_state =   {NICE_FSM{state_is_idle}}   & next_state_idle   
+                                   | {NICE_FSM{state_is_setup}}  & next_state_setup  
+                                   | {NICE_FSM{state_is_rowsum}} & next_state_rowsum 
+                                   | {NICE_FSM{state_is_colsum}} & next_state_colsum
+                                   | {NICE_FSM{state_is_jj_init_ch}} & next_state_jj_init_ch
+                                   | {NICE_FSM{state_is_jj_init_im}} & next_state_jj_init_im
+                                   | {NICE_FSM{state_is_jj_init_fs}} & next_state_jj_init_fs
+                                   | {NICE_FSM{state_is_jj_init_pw}} & next_state_jj_init_pw
+                                   | {NICE_FSM{state_is_jj_init_imaddr}} & next_state_jj_init_imaddr
+                                   | {NICE_FSM{state_is_jj_loop}} & next_state_jj_loop
+                                   | {NICE_FSM{state_is_jj_relu_q7}} & next_state_jj_relu_q7
+                                   | {NICE_FSM{state_is_jj_relu_size}} & next_state_jj_relu_size
+                                   | {NICE_FSM{state_is_jj_init_bias}} & next_state_jj_init_bias
                                    ;
 
    
@@ -734,7 +734,7 @@ module sirv_nice_core (
                    | state_is_jj_loop & jj_loop_ret
                    ;
 
-   sirv_gnrl_dfflr #(EAI_FSM) state_dfflr (state_ena, next_state, state_r, nice_clk, nice_rst_n);
+   sirv_gnrl_dfflr #(NICE_FSM) state_dfflr (state_ena, next_state, state_r, nice_clk, nice_rst_n);
 
    //=========================custom0_colsum start==============================//
    wire custom0_colsum_ret_next = custom0_colsum_ena;
