@@ -89,7 +89,6 @@ module e203_exu_csr(
   output[`E203_PC_SIZE-1:0]  csr_dpc_r,
   output[`E203_XLEN-1:0]     csr_mtvec_r,
 
-  input dsp_ov_i,
 
   input  clk_aon,
   input  clk,
@@ -637,20 +636,6 @@ wire [`E203_XLEN-1:0] csr_dscratch = dscratch_r;
 assign csr_dpc_r = dpc_r;
 
 
-wire sel_dsp_ov      = (csr_idx == `E203_DSPOV_CSRIDX);
-wire rd_dsp_ov       = csr_rd_en & sel_dsp_ov;
-wire wr_dsp_ov       = csr_wr_en & sel_dsp_ov;
-wire dsp_ov_wr_ena   = (wr_dsp_ov & wbck_csr_wen);
-
-wire [`E203_XLEN-1:0] dsp_ov_r;
-wire dsp_ov_ena = dsp_ov_i | dsp_ov_wr_ena;
-wire dsp_ov_nxt_pre = dsp_ov_i | (dsp_ov_wr_ena & wbck_csr_dat[0]);  
-wire [`E203_XLEN-1:0] dsp_ov_nxt = {31'b0,dsp_ov_nxt_pre};
-
-sirv_gnrl_dfflr #(`E203_XLEN) dsp_ov_dfflr (dsp_ov_ena, dsp_ov_nxt, dsp_ov_r, clk, rst_n);
-
-wire [`E203_XLEN-1:0] csr_dsp_ov = dsp_ov_r;
-
 /////////////////////////////////////////////////////////////////////
 //  Generate the Read path
   //Currently we only support the M mode to simplify the implementation and 
@@ -685,7 +670,6 @@ assign read_csr_dat = `E203_XLEN'b0
                | ({`E203_XLEN{rd_dcsr     }} & csr_dcsr    )
                | ({`E203_XLEN{rd_dpc      }} & csr_dpc     )
                | ({`E203_XLEN{rd_dscratch }} & csr_dscratch)
-               | ({`E203_XLEN{rd_dsp_ov }} & csr_dsp_ov)
                ;
 
 

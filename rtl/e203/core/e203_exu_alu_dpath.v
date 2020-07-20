@@ -111,11 +111,6 @@ module e203_exu_alu_dpath(
   output [33-1:0] muldiv_sbf_1_r,
 `endif//E203_SUPPORT_SHARE_MULDIV}
 
-  input  dsp_req_alu,
-  input  dsp_req_alu_sll,
-  input  [`E203_XLEN-1:0] dsp_req_alu_op1,
-  input  [`E203_XLEN-1:0] dsp_req_alu_op2,
-  output [`E203_XLEN-1:0] dsp_req_alu_res,
 
   input  clk,
   input  rst_n
@@ -134,8 +129,8 @@ module e203_exu_alu_dpath(
   wire [`E203_XLEN-1:0] misc_op2 = mux_op2[`E203_XLEN-1:0];
 
   // Only the regular ALU use shifter
-  wire [`E203_XLEN-1:0] shifter_op1 = (dsp_req_alu) ? dsp_req_alu_op1 : alu_req_alu_op1[`E203_XLEN-1:0];
-  wire [`E203_XLEN-1:0] shifter_op2 = (dsp_req_alu) ? dsp_req_alu_op2 : alu_req_alu_op2[`E203_XLEN-1:0];
+  wire [`E203_XLEN-1:0] shifter_op1 = alu_req_alu_op1[`E203_XLEN-1:0];
+  wire [`E203_XLEN-1:0] shifter_op2 = alu_req_alu_op2[`E203_XLEN-1:0];
 
   wire op_max;  
   wire op_min ; 
@@ -492,35 +487,7 @@ module e203_exu_alu_dpath(
             ,1'b0
             ,1'b0
         })
-      | ({DPATH_MUX_WIDTH{dsp_req_alu}} & {
-             32'b0           
-            ,32'b0           
-            ,1'b0
-            ,1'b0
-            ,1'b0
-            ,1'b0
-            ,1'b0
-            ,1'b0
-            ,1'b0
-            ,1'b0
-            ,1'b0
-            ,dsp_req_alu_sll
-            ,1'b0
-            ,1'b0
-            ,1'b0
-            ,1'b0
-            ,1'b0
-            ,1'b0
-            ,1'b0
-            ,1'b0
-            ,1'b0
-            ,1'b0
-            ,1'b0
-        })
-        
         ;
-  
-  assign dsp_req_alu_res     = sll_res[`E203_XLEN-1:0];
   
   assign alu_req_alu_res     = alu_dpath_res[`E203_XLEN-1:0];
   assign agu_req_alu_res     = alu_dpath_res[`E203_XLEN-1:0];

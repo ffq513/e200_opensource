@@ -88,8 +88,6 @@ module e203_exu(
   input  [`E203_RFIDX_WIDTH-1:0] i_rs2idx,   // The RS2 index
 
 
-  input  [`E203_RFIDX_WIDTH-1:0] i_rs1idx_1, // The RS1 index(high 32bit of 64bit data)
-  input  [`E203_RFIDX_WIDTH-1:0] i_rs2idx_1, // The RS2 index(high 32bit of 64bit data)
 
   //////////////////////////////////////////////////////////////
   // The Flush interface to IFU
@@ -212,7 +210,6 @@ module e203_exu(
   wire [`E203_RFIDX_WIDTH-1:0] rf_wbck_rdidx;
 
   wire rf_wbck_ena1;
-  wire [`E203_XLEN-1:0] rf_wbck_wdat1;
   wire [`E203_RFIDX_WIDTH-1:0] rf_wbck_rdidx1;
 
 
@@ -225,20 +222,11 @@ module e203_exu(
     .read_src1_dat (rf_rs1),
     .read_src2_dat (rf_rs2),
  
-    .read_src1_idx_1 (i_rs1idx_1),
-    .read_src2_idx_1 (i_rs2idx_1),
-    .read_src1_dat_1 (rf_rs1_1),
-    .read_src2_dat_1 (rf_rs2_1),      
-
     .x1_r          (rf2ifu_x1),
                     
     .wbck_dest_wen1 (rf_wbck_ena),
     .wbck_dest_idx1 (rf_wbck_rdidx),
     .wbck_dest_dat1 (rf_wbck_wdat),
-
-    .wbck_dest_wen2 (rf_wbck_ena1),
-    .wbck_dest_idx2 (rf_wbck_rdidx1),
-    .wbck_dest_dat2 (rf_wbck_wdat1),
 
     .test_mode     (test_mode),
     .clk           (clk          ),
@@ -275,8 +263,6 @@ module e203_exu(
 
   wire nice_cmt_off_ilgl;
 
-  wire dec_dsp_op;
-  wire [`E203_DECINFO_DSP_WIDTH-1:0] dec_dsp_info;
   //////////////////////////////////////////////////////////////
   // The Decoded Info-Bus
   e203_exu_decode u_e203_exu_decode (
@@ -306,20 +292,6 @@ module e203_exu(
     .dec_rem     (dec2ifu_rem   ),
     .dec_divu    (dec2ifu_divu  ),
     .dec_remu    (dec2ifu_remu  ),
-
-    .dec_dsp_info (dec_dsp_info),
-    .dec_dsp      (dec_dsp_op),
-    .dec_rs1x0_1  (dec_rs1x0_1),
-    .dec_rs2x0_1  (dec_rs2x0_1),
-    .dec_rs1en_1  (dec_rs1en_1),
-    .dec_rs2en_1  (dec_rs2en_1),
-    .dec_rdren    (dec_rdren),
-    .dec_rdren_1  (dec_rdren_1),
-    .dec_rdwen_1  (dec_rdwen_1),
-
-    .dec_rs1idx_1 (),  
-    .dec_rs2idx_1 (), 
-    .dec_rdidx_1  (dec_rdidx_1),  
 
 
     .dec_info  (dec_info ),
@@ -384,8 +356,6 @@ module e203_exu(
 
   wire amo_wait;
 
-  wire disp_dsp_op;
-  wire [`E203_DECINFO_DSP_WIDTH-1:0] disp_dsp_info;
 
   wire [`E203_XLEN-1:0] disp_alu_rs1_1;
   wire [`E203_XLEN-1:0] disp_alu_rs2_1;
@@ -436,46 +406,6 @@ module e203_exu(
     .disp_i_misalgn      (dec_misalgn    ),
     .disp_i_buserr       (dec_buserr     ),
     .disp_i_ilegl        (dec_ilegl      ),
-
-    .disp_i_rs1x0_1      (dec_rs1x0_1),
-    .disp_i_rs2x0_1      (dec_rs2x0_1),
-    .disp_i_rs1en_1      (dec_rs1en_1),
-    .disp_i_rs2en_1      (dec_rs2en_1),
-    .disp_i_rdren        (dec_rdren),
-    .disp_i_rdren_1      (dec_rdren_1),
-
-    .disp_i_rs1idx_1     (i_rs1idx_1),
-    .disp_i_rs2idx_1     (i_rs2idx_1),
-    .disp_i_rs1_1        (rf_rs1_1),
-    .disp_i_rs2_1        (rf_rs2_1),
-    .disp_i_rdwen_1      (dec_rdwen_1),
-    .disp_i_rdidx_1      (dec_rdidx_1),
-
-    .disp_i_dsp_op       (dec_dsp_op),
-    .disp_o_dsp_op       (disp_dsp_op),
-    .disp_i_dsp_info     (dec_dsp_info),
-    .disp_o_dsp_info     (disp_dsp_info),
-
-    .disp_o_alu_rs1_1        (disp_alu_rs1_1),
-    .disp_o_alu_rs2_1        (disp_alu_rs2_1),
-
-    .disp_o_alu_rdwen_1      (disp_alu_rdwen_1),
-    .disp_o_alu_rdidx_1      (disp_alu_rdidx_1),
-    .disp_oitf_rs1en_1       (disp_oitf_rs1en_1), 
-    .disp_oitf_rs2en_1       (disp_oitf_rs2en_1), 
-    .disp_oitf_rdren         (disp_oitf_rdren), 
-    .disp_oitf_rdren_1       (disp_oitf_rdren_1), 
-    .disp_oitf_rdwen_1       (disp_oitf_rdwen_1), 
-    .disp_oitf_rs1idx_1      (disp_oitf_rs1idx_1), 
-    .disp_oitf_rs2idx_1      (disp_oitf_rs2idx_1), 
-    .disp_oitf_rdidx_1       (disp_oitf_rdidx_1), 
-
-    .oitfrd_match_disprdwen  (oitfrd_match_disprdwen),
-    .oitfrd_match_disprs1_1  (oitfrd_match_disprs1_1),
-    .oitfrd_match_disprs2_1  (oitfrd_match_disprs2_1),
-    .oitfrd_match_disprdren  (oitfrd_match_disprdren),
-    .oitfrd_match_disprdren_1(oitfrd_match_disprdren_1),
-    .oitfrd_match_disprdwen_1(oitfrd_match_disprdwen_1),
 
     .disp_o_alu_valid    (disp_alu_valid   ),
     .disp_o_alu_ready    (disp_alu_ready   ),
@@ -564,23 +494,6 @@ module e203_exu(
 
     .oitf_empty           (oitf_empty    ),
 
-    .disp_i_rs1en_1           (disp_oitf_rs1en_1),
-    .disp_i_rs2en_1           (disp_oitf_rs2en_1),
-    .disp_i_rdren             (disp_oitf_rdren),
-    .disp_i_rdren_1           (disp_oitf_rdren_1),
-    .disp_i_rdwen_1           (disp_oitf_rdwen_1),
-
-    .disp_i_rdidx_1           (disp_oitf_rdidx_1),
-    .disp_i_rs1idx_1          (disp_oitf_rs1idx_1),
-    .disp_i_rs2idx_1          (disp_oitf_rs2idx_1),
-
-    .oitfrd_match_disprdwen   (oitfrd_match_disprdwen),
-    .oitfrd_match_disprs1_1   (oitfrd_match_disprs1_1),
-    .oitfrd_match_disprs2_1   (oitfrd_match_disprs2_1),
-    .oitfrd_match_disprdren   (oitfrd_match_disprdren),
-    .oitfrd_match_disprdren_1 (oitfrd_match_disprdren_1),
-    .oitfrd_match_disprdwen_1 (oitfrd_match_disprdwen_1),
-
     .clk                  (clk           ),
     .rst_n                (rst_n         ) 
   );
@@ -641,10 +554,6 @@ module e203_exu(
   wire nice_longp_wbck_ready;
   wire [`E203_ITAG_WIDTH-1:0] nice_o_itag;
 
-  wire alu_wbck_o_wen_1;
-  wire [`E203_XLEN-1:0] alu_wbck_o_wdat_1;
-  wire [`E203_RFIDX_WIDTH-1:0] alu_wbck_o_rdidx_1;
-  wire dsp_wbck_ov;
 
   e203_exu_alu u_e203_exu_alu(
 
@@ -764,27 +673,6 @@ module e203_exu(
 
     .i_nice_cmt_off_ilgl     (nice_cmt_off_ilgl),
 
-    //dsp
-    .i_rs1_1                (disp_alu_rs1_1),
-    .i_rs2_1                (disp_alu_rs2_1),
-    .i_dsp_info             (disp_dsp_info),
-    .i_dsp_op               (disp_dsp_op),
-    .i_rdwen_1              (disp_alu_rdwen_1),                           
-    .i_rdidx_1              (disp_alu_rdidx_1),   
-    .i_rs1idx               (i_rs1idx),
-    .wbck_o_wdat_1          (alu_wbck_o_wdat_1),
-    .wbck_o_rdidx_1         (alu_wbck_o_rdidx_1),
-    .wbck_o_wen_1           (alu_wbck_o_wen_1), 
-    .dsp_o_wbck_ov          (dsp_wbck_ov),     // to csr module
-
-   // .dsp_oitf_empty        (),
-   // .dsp_oitf_ret_ptr      (),
-   // .dsp_oitf_ret_rdidx    (),
-   // .dsp_oitf_ret_rdidx_1  (),
-   // .dsp_oitf_ret_rdwen    (),
-   // .dsp_oitf_ret_rdwen_1  (),
-   // .dsp_oitf_ret_ena      (),
-
     .clk                 (clk          ),
     .rst_n               (rst_n        ) 
   );
@@ -875,13 +763,6 @@ module e203_exu(
     .rf_wbck_o_wdat     (rf_wbck_wdat   ),
     .rf_wbck_o_rdidx    (rf_wbck_rdidx  ),
        
-    .rf_wbck_o_ena1     (rf_wbck_ena1),
-    .rf_wbck_o_wdat1    (rf_wbck_wdat1),
-    .rf_wbck_o_rdidx1   (rf_wbck_rdidx1),
-
-    .alu_wbck_i_wdat_1  (alu_wbck_o_wdat_1),
-    .alu_wbck_i_rdidx_1 (alu_wbck_o_rdidx_1),
-    .alu_wbck_i_wen_1   (alu_wbck_o_wen_1),
 
     .clk                 (clk          ),
     .rst_n               (rst_n        ) 
@@ -1092,7 +973,6 @@ module e203_exu(
     .msie_r        (msie_r      ),
     .meie_r        (meie_r      ),
 
-    .dsp_ov_i      (dsp_wbck_ov),
     .ext_irq_r     (ext_irq_r),
     .sft_irq_r     (sft_irq_r),
     .tmr_irq_r     (tmr_irq_r),

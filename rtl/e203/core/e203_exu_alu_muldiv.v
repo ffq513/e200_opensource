@@ -78,10 +78,6 @@ module e203_exu_alu_muldiv(
   output [33-1:0] muldiv_sbf_1_nxt,
   input  [33-1:0] muldiv_sbf_1_r,
 
-  input dsp_plex_alumul_op,
-  input [`E203_XLEN:0] dsp_mul_plex_alumul_rs1,
-  input [`E203_XLEN:0] dsp_mul_plex_alumul_rs2,
-  output [`E203_XLEN*2-1:0]dsp_plex_alumul_res,  
 
   input  clk,
   input  rst_n
@@ -115,8 +111,8 @@ module e203_exu_alu_muldiv(
   wire mul_rs1_sign = (i_mulhu)            ? 1'b0 : muldiv_i_rs1[`E203_XLEN-1];
   wire mul_rs2_sign = (i_mulhsu | i_mulhu) ? 1'b0 : muldiv_i_rs2[`E203_XLEN-1];
 
-  wire [32:0] mul_op1 = dsp_plex_alumul_op ? dsp_mul_plex_alumul_rs1 : {mul_rs1_sign, muldiv_i_rs1};
-  wire [32:0] mul_op2 = dsp_plex_alumul_op ? dsp_mul_plex_alumul_rs2 : {mul_rs2_sign, muldiv_i_rs2};
+  wire [32:0] mul_op1 = {mul_rs1_sign, muldiv_i_rs1};
+  wire [32:0] mul_op2 = {mul_rs2_sign, muldiv_i_rs2};
 
   wire i_op_mul = i_mul | i_mulh | i_mulhsu | i_mulhu;
   wire i_op_div = i_div | i_divu | i_rem    | i_remu;
@@ -481,27 +477,17 @@ module e203_exu_alu_muldiv(
   wire res_sel_mul  = (~back2back_seq) & (~special_cases) & i_op_mul;
 
   wire signed [63:0] mul_res_signed = $signed(mul_op1) * $signed(mul_op2); 
-  wire [63:0] mul_res_dsp = $unsigned(mul_res_signed);
-  wire [31:0] res_mul    = mul_res_dsp[31:0];
-  wire [31:0] res_mulh   = mul_res_dsp[63:32];                       
-  wire [31:0] res_mulhsu = mul_res_dsp[63:32];                                              
-  wire [31:0] res_mulhu  = mul_res_dsp[63:32];
 
   assign muldiv_o_wbck_wdat = 
                ({`E203_XLEN{res_sel_b2b}} & back2back_res)
              | ({`E203_XLEN{res_sel_spl}} & special_res)
              | ({`E203_XLEN{res_sel_div}} & div_res)
              | ({`E203_XLEN{res_sel_mul}} & mul_res)
-         | ({32{i_mul   }} & res_mul    )
-         | ({32{i_mulh  }} & res_mulh   )
-         | ({32{i_mulhsu}} & res_mulhsu )
-         | ({32{i_mulhu }} & res_mulhu  )
         ;
 
   //   There is no exception cases for MULDIV, so no addtional cmt signals
   assign muldiv_o_wbck_err = 1'b0;
 
-  assign dsp_plex_alumul_res = mul_res_dsp;
 
      // The operands and info to ALU
   wire req_alu_sel1 = i_op_mul;

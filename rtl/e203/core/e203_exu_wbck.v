@@ -53,14 +53,7 @@ module e203_exu_wbck(
   output  [`E203_XLEN-1:0] rf_wbck_o_wdat,
   output  [`E203_RFIDX_WIDTH-1:0] rf_wbck_o_rdidx,
 
-  output  rf_wbck_o_ena1,
-  output  [`E203_XLEN-1:0] rf_wbck_o_wdat1,
-  output  [`E203_RFIDX_WIDTH-1:0] rf_wbck_o_rdidx1,
-
   //==========================================
-  input  [`E203_XLEN-1:0] alu_wbck_i_wdat_1,
-  input  [`E203_RFIDX_WIDTH-1:0] alu_wbck_i_rdidx_1,
-  input  alu_wbck_i_wen_1,
   
   input  clk,
   input  rst_n
@@ -116,9 +109,6 @@ module e203_exu_wbck(
   assign rf_wbck_o_wdat  = wbck_i_wdat[`E203_XLEN-1:0];
   assign rf_wbck_o_rdidx = wbck_i_rdidx;
 
-  assign rf_wbck_o_ena1   = alu_wbck_i_valid & alu_wbck_i_ready & alu_wbck_i_wen_1;
-  assign rf_wbck_o_wdat1  = alu_wbck_i_wdat_1[`E203_XLEN-1:0];
-  assign rf_wbck_o_rdidx1 = alu_wbck_i_rdidx_1;
 
 
 endmodule                                      

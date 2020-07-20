@@ -43,24 +43,6 @@ module e203_exu_disp(
   input  disp_i_rs1en,
   input  disp_i_rs2en,
 
-  input  disp_i_rs1x0_1,
-  input  disp_i_rs2x0_1,
-  input  disp_i_rs1en_1,
-  input  disp_i_rs2en_1,
-  input  disp_i_rdren,
-  input  disp_i_rdren_1,
-
-  input  [`E203_RFIDX_WIDTH-1:0] disp_i_rs1idx_1,
-  input  [`E203_RFIDX_WIDTH-1:0] disp_i_rs2idx_1,
-  input  [`E203_XLEN-1:0] disp_i_rs1_1,
-  input  [`E203_XLEN-1:0] disp_i_rs2_1,
-  input  disp_i_rdwen_1,
-  input  [`E203_RFIDX_WIDTH-1:0] disp_i_rdidx_1,
-
-  input  disp_i_dsp_op,
-  output disp_o_dsp_op,
-  input [`E203_DECINFO_DSP_WIDTH-1:0] disp_i_dsp_info,
-  output [`E203_DECINFO_DSP_WIDTH-1:0] disp_o_dsp_info,
   
   input  [`E203_RFIDX_WIDTH-1:0] disp_i_rs1idx,
   input  [`E203_RFIDX_WIDTH-1:0] disp_i_rs2idx,
@@ -86,14 +68,9 @@ module e203_exu_disp(
   output [`E203_XLEN-1:0] disp_o_alu_rs1,
   output [`E203_XLEN-1:0] disp_o_alu_rs2,
 
-  output [`E203_XLEN-1:0] disp_o_alu_rs1_1,
-  output [`E203_XLEN-1:0] disp_o_alu_rs2_1,
-
   output disp_o_alu_rdwen,
-  output disp_o_alu_rdwen_1,
 
   output [`E203_RFIDX_WIDTH-1:0] disp_o_alu_rdidx,
-  output [`E203_RFIDX_WIDTH-1:0] disp_o_alu_rdidx_1,
 
   output [`E203_DECINFO_WIDTH-1:0]  disp_o_alu_info,  
   output [`E203_XLEN-1:0] disp_o_alu_imm,
@@ -131,23 +108,6 @@ module e203_exu_disp(
 
   output [`E203_PC_SIZE-1:0] disp_oitf_pc ,
  
-  output disp_oitf_rs1en_1, 
-  output disp_oitf_rs2en_1, 
-  output disp_oitf_rdren  , 
-  output disp_oitf_rdren_1, 
-  output disp_oitf_rdwen_1, 
-
-  input  oitfrd_match_disprdwen,
-  input  oitfrd_match_disprs1_1,
-  input  oitfrd_match_disprs2_1,
-  input  oitfrd_match_disprdren,
-  input  oitfrd_match_disprdren_1,
-  input  oitfrd_match_disprdwen_1,
-
-  output [`E203_RFIDX_WIDTH-1:0] disp_oitf_rs1idx_1, 
-  output [`E203_RFIDX_WIDTH-1:0] disp_oitf_rs2idx_1, 
-  output [`E203_RFIDX_WIDTH-1:0] disp_oitf_rdidx_1 , 
-  
   input  clk,
   input  rst_n
   );
@@ -273,8 +233,6 @@ module e203_exu_disp(
   wire [`E203_XLEN-1:0] disp_i_rs1_msked = disp_i_rs1 & {`E203_XLEN{~disp_i_rs1x0}};
   wire [`E203_XLEN-1:0] disp_i_rs2_msked = disp_i_rs2 & {`E203_XLEN{~disp_i_rs2x0}};
 
-  wire [`E203_XLEN-1:0] disp_i_rs1_1_msked = disp_i_rs1_1 & {`E203_XLEN{~disp_i_rs1x0_1}};
-  wire [`E203_XLEN-1:0] disp_i_rs2_1_msked = disp_i_rs2_1 & {`E203_XLEN{~disp_i_rs2x0_1}};
 
     // Since we always dispatch any instructions into ALU, so we dont need to gate ops here
   //assign disp_o_alu_rs1   = {`E203_XLEN{disp_alu}} & disp_i_rs1_msked;
@@ -284,18 +242,11 @@ module e203_exu_disp(
   //assign disp_o_alu_info  = {`E203_DECINFO_WIDTH{disp_alu}} & disp_i_info;  
   assign disp_o_alu_rs1   = disp_i_rs1_msked;
   assign disp_o_alu_rs2   = disp_i_rs2_msked;
-  assign disp_o_alu_rs1_1 = disp_i_rs1_1_msked;
-  assign disp_o_alu_rs2_1 = disp_i_rs2_1_msked;
 
   assign disp_o_alu_rdwen = disp_i_rdwen;
   assign disp_o_alu_rdidx = disp_i_rdidx;
   assign disp_o_alu_info  = disp_i_info;  
  
-  assign disp_o_alu_rdwen_1 = disp_i_rdwen_1;
-  assign disp_o_alu_rdidx_1 = disp_i_rdidx_1;
-  assign disp_o_dsp_info = disp_i_dsp_info;
-
-  assign disp_o_dsp_op = disp_i_dsp_op;
 
     // Why we use precise version of disp_longp here, because
     //   only when it is really dispatched as long pipe then allocate the OITF
@@ -342,20 +293,6 @@ module e203_exu_disp(
 
   assign disp_oitf_pc  = disp_i_pc;
 
-  wire disp_dsp_oitf_rs1en_1;
-  wire disp_dsp_oitf_rs2en_1;
-  
-  assign disp_oitf_rs1en_1    = disp_dsp_oitf_rs1en_1;
-  assign disp_oitf_rs2en_1    = disp_dsp_oitf_rs2en_1;
-  assign disp_oitf_rdren      = disp_i_rdren;
-  assign disp_oitf_rdren_1    = disp_i_rdren_1;
-  assign disp_oitf_rdwen_1    = disp_i_rdwen_1;
-  assign disp_dsp_oitf_rs1en_1= disp_i_rs1en_1 & (~disp_i_rdren);
-  assign disp_dsp_oitf_rs2en_1= disp_i_rs2en_1 & (~disp_i_rdren_1);
-
-  assign disp_oitf_rs1idx_1 = disp_i_rs1idx_1;
-  assign disp_oitf_rs2idx_1 = disp_i_rs2idx_1;
-  assign disp_oitf_rdidx_1  = disp_i_rdidx_1;
 
 endmodule                                      
                                                

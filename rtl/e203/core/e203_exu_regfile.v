@@ -29,22 +29,15 @@ module e203_exu_regfile(
   input  [`E203_RFIDX_WIDTH-1:0] read_src1_idx,
   input  [`E203_RFIDX_WIDTH-1:0] read_src2_idx,
 
-  input  [`E203_RFIDX_WIDTH-1:0] read_src1_idx_1,
-  input  [`E203_RFIDX_WIDTH-1:0] read_src2_idx_1,
 
   output [`E203_XLEN-1:0] read_src1_dat,
   output [`E203_XLEN-1:0] read_src2_dat,
 
-  output [`E203_XLEN-1:0] read_src1_dat_1,
-  output [`E203_XLEN-1:0] read_src2_dat_1,  
 
   input  wbck_dest_wen1,
   input  [`E203_RFIDX_WIDTH-1:0] wbck_dest_idx1,
   input  [`E203_XLEN-1:0] wbck_dest_dat1,
 
-  input  wbck_dest_wen2,
-  input  [`E203_RFIDX_WIDTH-1:0] wbck_dest_idx2,
-  input  [`E203_XLEN-1:0] wbck_dest_dat2,
 
   output [`E203_XLEN-1:0] x1_r,
 
@@ -58,7 +51,6 @@ module e203_exu_regfile(
   wire [`E203_XLEN-1:0] rf_wdat [0:`E203_RFREG_NUM-1];
 
   wire [`E203_RFREG_NUM-1:0] rf_wen1;
-  wire [`E203_RFREG_NUM-1:0] rf_wen2;
 
   `ifdef E203_REGFILE_LATCH_BASED //{
   // Use DFF to buffer the write-port
@@ -76,7 +68,6 @@ module e203_exu_regfile(
         if(i==0) begin: rf0
             // x0 cannot be wrote since it is constant-zeros
             assign rf_wen1[i] = 1'b0;
-            assign rf_wen2[i] = 1'b0;
             assign rf_r[i] = `E203_XLEN'b0;
             assign rf_wdat[i] = `E203_XLEN'b0;
           `ifdef E203_REGFILE_LATCH_BASED //{
@@ -85,13 +76,10 @@ module e203_exu_regfile(
         end
         else begin: rfno0
             assign rf_wen1[i] = wbck_dest_wen1 & (wbck_dest_idx1 == i[`E203_RFIDX_WIDTH-1:0]) ;
-            assign rf_wen2[i] = wbck_dest_wen2 & (wbck_dest_idx2 == i[`E203_RFIDX_WIDTH-1:0]) ;
 
             assign rf_wen[i] = rf_wen1[i] 
-                             | rf_wen2[i]
                              ;
             assign rf_wdat[i] =   ({`E203_XLEN{rf_wen1[i]}} & wbck_dest_dat1) 
-                                | ({`E203_XLEN{rf_wen2[i]}} & wbck_dest_dat2)
                                 ;
 
           `ifdef E203_REGFILE_LATCH_BASED //{
@@ -114,8 +102,6 @@ module e203_exu_regfile(
   assign read_src1_dat = rf_r[read_src1_idx];
   assign read_src2_dat = rf_r[read_src2_idx];
  
-  assign read_src1_dat_1 = rf_r[read_src1_idx_1];
-  assign read_src2_dat_1 = rf_r[read_src2_idx_1];
 
  // wire  [`E203_XLEN-1:0] x0  = rf_r[0];
  // wire  [`E203_XLEN-1:0] x1  = rf_r[1];

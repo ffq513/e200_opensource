@@ -66,8 +66,6 @@ module e203_ifu_ifetch(
   output [`E203_RFIDX_WIDTH-1:0] ifu_o_rs1idx,
   output [`E203_RFIDX_WIDTH-1:0] ifu_o_rs2idx,
 
-  output [`E203_RFIDX_WIDTH-1:0] ifu_o_rs1idx_1,
-  output [`E203_RFIDX_WIDTH-1:0] ifu_o_rs2idx_1,
 
   output ifu_o_prdt_taken,               // The Bxx is predicted as taken
   output ifu_o_misalgn,                  // The fetch misalign 
@@ -224,8 +222,6 @@ module e203_ifu_ifetch(
 
   wire minidec_rs1en_1;
   wire minidec_rs2en_1;
-  wire [`E203_RFIDX_WIDTH-1:0] minidec_rs1idx_1;
-  wire [`E203_RFIDX_WIDTH-1:0] minidec_rs2idx_1;
 
      // The ir valid is set when there is new instruction fetched *and* 
      //   no flush happening 
@@ -300,15 +296,6 @@ module e203_ifu_ifetch(
   sirv_gnrl_dfflr #(`E203_RFIDX_WIDTH) ir_rs2idx_dfflr (ir_rs2idx_ena, ir_rs2idx_nxt, ir_rs2idx_r, clk, rst_n);
 
 
-  wire [`E203_RFIDX_WIDTH-1:0] ir_rs1idx_1_r;
-  wire [`E203_RFIDX_WIDTH-1:0] ir_rs2idx_1_r;
-  wire ir_rs1idx_1_ena =  (minidec_fpu & ir_valid_set & minidec_fpu_rs1en & (~minidec_fpu_rs1fpu)) | ((~minidec_fpu) & ir_valid_set & minidec_rs1en_1) | bpu2rf_rs1_ena;
-  wire [`E203_RFIDX_WIDTH-1:0] ir_rs1idx_1_nxt = minidec_fpu ? minidec_fpu_rs1idx_1 : minidec_rs1idx_1;
-  sirv_gnrl_dfflr #(`E203_RFIDX_WIDTH) ir_rs1idx_1_dfflr  (ir_rs1idx_1_ena, ir_rs1idx_1_nxt, ir_rs1idx_1_r, clk, rst_n);
-  wire ir_rs2idx_1_ena =  (minidec_fpu & ir_valid_set & minidec_fpu_rs2en & (~minidec_fpu_rs1fpu)) | ((~minidec_fpu) & ir_valid_set & minidec_rs2en_1) | bpu2rf_rs1_ena;
-  wire [`E203_RFIDX_WIDTH-1:0] ir_rs2idx_1_nxt = minidec_fpu ? minidec_fpu_rs2idx_1 : minidec_rs2idx_1;
-  sirv_gnrl_dfflr #(`E203_RFIDX_WIDTH) ir_rs2idx_1_dfflr  (ir_rs2idx_1_ena, ir_rs2idx_1_nxt, ir_rs2idx_1_r, clk, rst_n);
-
   wire [`E203_PC_SIZE-1:0] pc_r;
   wire [`E203_PC_SIZE-1:0] ifu_pc_nxt = pc_r;
   wire [`E203_PC_SIZE-1:0] ifu_pc_r;
@@ -324,9 +311,6 @@ module e203_ifu_ifetch(
   assign ifu_o_rs2idx = ir_rs2idx_r;
   assign ifu_o_prdt_taken = ifu_prdt_taken_r;
   assign ifu_o_muldiv_b2b = ifu_muldiv_b2b_r;
-
-  assign ifu_o_rs1idx_1 = ir_rs1idx_1_r;
-  assign ifu_o_rs2idx_1 = ir_rs2idx_1_r;
 
   assign ifu_o_valid  = ir_valid_r;
   assign ifu_o_pc_vld = ir_pc_vld_r;
@@ -395,11 +379,6 @@ module e203_ifu_ifetch(
       .dec_rs2en   (minidec_rs2en      ),
       .dec_rs1idx  (minidec_rs1idx     ),
       .dec_rs2idx  (minidec_rs2idx     ),
-
-      .dec_rs1en_1 (minidec_rs1en_1    ),
-      .dec_rs2en_1 (minidec_rs2en_1    ),
-      .dec_rs1idx_1(minidec_rs1idx_1   ),
-      .dec_rs2idx_1(minidec_rs2idx_1   ),
 
       .dec_rv32    (minidec_rv32       ),
       .dec_bjp     (minidec_bjp        ),

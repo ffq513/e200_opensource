@@ -40,11 +40,6 @@ module e203_ifu_minidec(
   output [`E203_RFIDX_WIDTH-1:0] dec_rs1idx,
   output [`E203_RFIDX_WIDTH-1:0] dec_rs2idx,
 
-  output dec_rs1en_1,
-  output dec_rs2en_1,
-  output [`E203_RFIDX_WIDTH-1:0] dec_rs1idx_1,
-  output [`E203_RFIDX_WIDTH-1:0] dec_rs2idx_1,
-
   output dec_mulhsu,
   output dec_mul   ,
   output dec_div   ,
@@ -94,19 +89,6 @@ module e203_ifu_minidec(
   .nice_xs_off(1'b0),  
   .nice_cmt_off_ilgl_o(),
  
-  .dec_rs1x0_1 (),
-  .dec_rs2x0_1 (),
-  .dec_rs1en_1 (dec_rs1en_1),
-  .dec_rs2en_1 (dec_rs2en_1),
-  .dec_rdren   (),
-  .dec_rdren_1 (),
-  .dec_rdwen_1 (),
-  .dec_rs1idx_1(dec_rs1idx_1),
-  .dec_rs2idx_1(dec_rs2idx_1),
-  .dec_rdidx_1 (),
-  .dec_dsp     (),
-  .dec_dsp_info(),
-
   .dec_mulhsu(dec_mulhsu),
   .dec_mul   (dec_mul   ),
   .dec_div   (dec_div   ),

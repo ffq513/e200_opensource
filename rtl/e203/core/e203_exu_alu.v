@@ -167,31 +167,6 @@ module e203_exu_alu(
 
   input                          i_nice_cmt_off_ilgl,
 
-  //DSP
-  input  [`E203_XLEN-1:0]        i_rs1_1,
-  input  [`E203_XLEN-1:0]        i_rs2_1,
-
-  input [`E203_DECINFO_DSP_WIDTH-1:0] i_dsp_info,
-  input                          i_dsp_op,
-  input                          i_rdwen_1,                           
-  input  [`E203_RFIDX_WIDTH-1:0] i_rdidx_1,   
-  input  [`E203_RFIDX_WIDTH-1:0] i_rs1idx,
-
-  output [`E203_XLEN-1:0]        wbck_o_wdat_1,
-  output [`E203_RFIDX_WIDTH-1:0] wbck_o_rdidx_1,
-  output                         wbck_o_wen_1, 
-  output                         dsp_o_wbck_ov,     // to csr module
-
-  //oitf
- // input                          dsp_oitf_empty,
- // input  [`E203_ITAG_WIDTH -1:0] dsp_oitf_ret_ptr,
- // input  [`E203_RFIDX_WIDTH-1:0] dsp_oitf_ret_rdidx,
- // input  [`E203_RFIDX_WIDTH-1:0] dsp_oitf_ret_rdidx_1,
- // input                          dsp_oitf_ret_rdwen,   
- // input                          dsp_oitf_ret_rdwen_1,   
- // output                         dsp_oitf_ret_ena,
-
-
   input  clk,
   input  rst_n
   );
@@ -210,7 +185,6 @@ module e203_exu_alu(
 `endif//E203_SUPPORT_SHARE_MULDIV}
   wire nice_op = (~ifu_excp_op) & (i_info[`E203_DECINFO_GRP] == `E203_DECINFO_GRP_NICE);
 
-  wire dsp_op = (~ifu_excp_op) & (i_info[`E203_DECINFO_GRP] == `E203_DECINFO_GRP_DSP); 
 
   // The ALU incoming instruction may go to several different targets:
   //   * The ALUDATAPATH if it is a regular ALU instructions
@@ -229,7 +203,6 @@ module e203_exu_alu(
 
   wire nice_i_valid = i_valid & nice_op;
  
-  wire dsp_i_valid = i_valid & dsp_op;
 
 `ifdef E203_SUPPORT_SHARE_MULDIV //{
   wire mdv_i_ready;
@@ -240,7 +213,6 @@ module e203_exu_alu(
   wire csr_i_ready;
   wire ifu_excp_i_ready;
   wire nice_i_ready;
-  wire dsp_i_ready;
 
   assign i_ready =   (agu_i_ready & agu_op)
                    `ifdef E203_SUPPORT_SHARE_MULDIV //{
@@ -251,7 +223,6 @@ module e203_exu_alu(
                    | (bjp_i_ready & bjp_op)
                    | (csr_i_ready & csr_op)
                    | (nice_i_ready & nice_op)
-                   | (dsp_i_ready & dsp_op)
                      ;
 
   wire agu_i_longpipe;
@@ -331,60 +302,6 @@ module e203_exu_alu(
 
   );
 
-
- //////////////////////////////////////////////////////////////
-  // Instantiate the DSP module
-  // CAI add start.
-  wire [`E203_XLEN-1:0] dsp_o_wbck_wdat;
-  wire [`E203_XLEN-1:0] dsp_o_wbck_wdat_1;
-  // dsp wext high word shifter reuse regular alu shifter
-  wire dsp_req_alu_sll; 
-  wire [`E203_XLEN-1:0] dsp_req_alu_op1;
-  wire [`E203_XLEN-1:0] dsp_req_alu_op2;
-  wire [`E203_XLEN-1:0] dsp_req_alu_res;
-
-  wire dsp_o_valid;
-  wire dsp_o_ready;
-  wire dsp_o_wbck_err;
-
-  wire dsp_plex_alumul = i_dsp_info[`E203_DECINFO_DSP_MUL_PLEX_ALUMULOP];
-  wire [`E203_XLEN:0] dsp_mul_plex_alumul_rs1;    
-  wire [`E203_XLEN:0] dsp_mul_plex_alumul_rs2;    
-  wire [`E203_XLEN*2-1:0] dsp_plex_alumul_res;
-  wire dsp_plex_alumul_op = (~ifu_excp_op) & dsp_plex_alumul;
-
-  e203_exu_alu_dsp u_e203_exu_alu_dsp (
-      .i_rs1                         ( i_rs1                      ),
-      .i_rs2                         ( i_rs2                      ),
-      .i_rs1_1                       ( i_rs1_1                    ),
-      .i_rs2_1                       ( i_rs2_1                    ),
-      .i_rdidx                       ( i_rdidx                    ),
-      .i_rs1idx                      ( i_rs1idx                   ), 
-      .dsp_o_wbck_wdat               ( dsp_o_wbck_wdat            ),
-      .dsp_o_wbck_wdat_1             ( dsp_o_wbck_wdat_1          ),
-      .dsp_o_wbck_err                ( dsp_o_wbck_err             ),
-      .dsp_o_wbck_ov                 ( dsp_o_wbck_ov              ), 
-      .i_dsp_info                    ( i_dsp_info                 ),
-      .wext_hi_shift_left_req_o      ( dsp_req_alu_sll            ), 
-      .wext_hi_shift_op1_o           ( dsp_req_alu_op1            ),
-      .wext_hi_shift_op2_o           ( dsp_req_alu_op2            ),
-      .wext_hi_shift_res_i           ( dsp_req_alu_res            ),
-
-      .dsp_i_valid              (dsp_i_valid ),
-      .dsp_i_ready              (dsp_i_ready ),
-                                                       
-      .dsp_o_valid              (dsp_o_valid ),
-      .dsp_o_ready              (dsp_o_ready ),
-
-      .dsp_mul_plex_alumul_rs1       ( dsp_mul_plex_alumul_rs1    ),
-      .dsp_mul_plex_alumul_rs2       ( dsp_mul_plex_alumul_rs2    ),
-      .dsp_plex_alumul_res           ( dsp_plex_alumul_res        ),
-      .clk                           ( clk                        ), 
-      .rst_n                         ( rst_n                      )
-    );
-
-  assign wbck_o_wdat_1 = dsp_o_wbck_wdat_1;
-  assign wbck_o_wdat_1 = dsp_o_wbck_wdat_1;
 
 
   e203_exu_alu_csrctrl u_e203_exu_alu_csrctrl(
@@ -745,11 +662,6 @@ module e203_exu_alu(
       .muldiv_sbf_1_nxt    (muldiv_sbf_1_nxt  ),
       .muldiv_sbf_1_r      (muldiv_sbf_1_r    ),
 
-      .dsp_plex_alumul_op      (dsp_plex_alumul_op),
-      .dsp_mul_plex_alumul_rs1 (dsp_mul_plex_alumul_rs1),
-      .dsp_mul_plex_alumul_rs2 (dsp_mul_plex_alumul_rs2),
-      .dsp_plex_alumul_res     (dsp_plex_alumul_res),
-
       .clk                 (clk               ),
       .rst_n               (rst_n             ) 
   );
@@ -839,12 +751,6 @@ module e203_exu_alu(
       .muldiv_sbf_1_r      (muldiv_sbf_1_r    ),
 `endif//E203_SUPPORT_SHARE_MULDIV}
   
-      .dsp_req_alu         (dsp_req_alu_sll ),
-      .dsp_req_alu_sll     (dsp_req_alu_sll ),
-      .dsp_req_alu_op1     (dsp_req_alu_op1 ),
-      .dsp_req_alu_op2     (dsp_req_alu_op2 ),
-      .dsp_req_alu_res     (dsp_req_alu_res),
-
       .clk                 (clk           ),
       .rst_n               (rst_n         ) 
     );
@@ -875,7 +781,6 @@ module e203_exu_alu(
 `endif//E203_SUPPORT_SHARE_MULDIV}
   wire o_sel_nice = nice_op;
   
-  wire o_sel_dsp = dsp_op;
 
   assign o_valid =     (o_sel_alu      & alu_o_valid     )
                      | (o_sel_bjp      & bjp_o_valid     )
@@ -886,7 +791,6 @@ module e203_exu_alu(
                      | (o_sel_mdv      & mdv_o_valid     )
                       `endif//E203_SUPPORT_SHARE_MULDIV}
                      | (o_sel_nice      & nice_o_valid     )
-                     | (o_sel_dsp      & dsp_o_valid     )
                      ;
 
   assign ifu_excp_o_ready = o_sel_ifu_excp & o_ready;
@@ -899,7 +803,6 @@ module e203_exu_alu(
   assign csr_o_ready      = o_sel_csr & o_ready;
   assign nice_o_ready      = o_sel_nice & o_ready;
   
-  assign dsp_o_ready      = o_sel_dsp & o_ready;
 
   assign wbck_o_wdat = 
                     ({`E203_XLEN{o_sel_alu}} & alu_o_wbck_wdat)
@@ -911,18 +814,13 @@ module e203_exu_alu(
                       `endif//E203_SUPPORT_SHARE_MULDIV}
                   | ({`E203_XLEN{o_sel_ifu_excp}} & ifu_excp_o_wbck_wdat)
                   //| ({`E203_XLEN{o_sel_nice}} & nice_o_wbck_wdat)
-                  | ({`E203_XLEN{o_sel_dsp}} & dsp_o_wbck_wdat)
                   ;
 
-  wire [`E203_XLEN-1:0] wbck_arbt_i_wdat_1 = dsp_o_wbck_wdat_1;
 
   assign wbck_o_rdidx = i_rdidx; 
-  assign wbck_o_rdidx_1 = i_rdidx_1; 
 
   wire wbck_o_rdwen = i_rdwen;
-  wire wbck_o_rdwen_1 = i_rdwen_1;
 
-  assign wbck_o_wen_1 = wbck_o_rdwen_1;
   wire wbck_o_err = 
                     ({1{o_sel_alu}} & alu_o_wbck_err)
                   | ({1{o_sel_bjp}} & bjp_o_wbck_err)

@@ -89,8 +89,6 @@ module e203_ifu(
   output [`E203_RFIDX_WIDTH-1:0] ifu_o_rs1idx,
   output [`E203_RFIDX_WIDTH-1:0] ifu_o_rs2idx,
 
-  output [`E203_RFIDX_WIDTH-1:0] ifu_o_rs1idx_1,
-  output [`E203_RFIDX_WIDTH-1:0] ifu_o_rs2idx_1,
 
   output ifu_o_prdt_taken,               // The Bxx is predicted as taken
   output ifu_o_muldiv_b2b,               
@@ -164,8 +162,6 @@ module e203_ifu(
     .ifu_o_buserr  (ifu_o_buserr ),
     .ifu_o_rs1idx  (ifu_o_rs1idx),
     .ifu_o_rs2idx  (ifu_o_rs2idx),
-    .ifu_o_rs1idx_1  (ifu_o_rs1idx_1),
-    .ifu_o_rs2idx_1  (ifu_o_rs2idx_1),
     .ifu_o_prdt_taken(ifu_o_prdt_taken),
     .ifu_o_muldiv_b2b(ifu_o_muldiv_b2b),
     .ifu_o_valid   (ifu_o_valid  ),

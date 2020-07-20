@@ -59,22 +59,6 @@ module e203_exu_oitf (
   output oitfrd_match_disprs3,
   output oitfrd_match_disprd,
 
-  input  disp_i_rs1en_1,
-  input  disp_i_rs2en_1,
-  input  disp_i_rdren,
-  input  disp_i_rdren_1,
-  input  disp_i_rdwen_1,
-
-  input  [`E203_RFIDX_WIDTH-1:0] disp_i_rdidx_1,
-  input  [`E203_RFIDX_WIDTH-1:0] disp_i_rs1idx_1,
-  input  [`E203_RFIDX_WIDTH-1:0] disp_i_rs2idx_1,
-
-  output oitfrd_match_disprdwen,
-  output oitfrd_match_disprs1_1,
-  output oitfrd_match_disprs2_1,
-  output oitfrd_match_disprdren,
-  output oitfrd_match_disprdren_1,
-  output oitfrd_match_disprdwen_1,
 
   output oitf_empty,
   input  clk,
@@ -154,7 +138,6 @@ module e203_exu_oitf (
   wire [`E203_OITF_DEPTH-1:0] rd_match_rs3idx;
   wire [`E203_OITF_DEPTH-1:0] rd_match_rdidx;
 
-  wire [`E203_OITF_DEPTH-1:0] rd_match_rdwenidx;
   wire [`E203_OITF_DEPTH-1:0] rd_match_rdwenidx_1;
   wire [`E203_OITF_DEPTH-1:0] rd_match_rdrenidx;
   wire [`E203_OITF_DEPTH-1:0] rd_match_rdrenidx_1;
@@ -182,12 +165,6 @@ module e203_exu_oitf (
         assign rd_match_rs3idx[i] = vld_r[i] & rdwen_r[i] & disp_i_rs3en & (rdfpu_r[i] == disp_i_rs3fpu) & (rdidx_r[i] == disp_i_rs3idx);
         assign rd_match_rdidx [i] = vld_r[i] & rdwen_r[i] & disp_i_rdwen & (rdfpu_r[i] == disp_i_rdfpu ) & (rdidx_r[i] == disp_i_rdidx );
  
-        assign rd_match_rdwenidx[i]    = vld_r[i] & rdwen_r[i] & disp_i_rdwen   & (rdidx_r[i] == disp_i_rdidx   );
-        assign rd_match_rdwenidx_1[i]  = vld_r[i] & rdwen_r[i] & disp_i_rdwen_1 & (rdidx_r[i] == disp_i_rdidx_1 );
-        assign rd_match_rdrenidx[i]    = vld_r[i] & rdwen_r[i] & disp_i_rdren   & (rdidx_r[i] == disp_i_rdidx   );
-        assign rd_match_rdrenidx_1[i]  = vld_r[i] & rdwen_r[i] & disp_i_rdren_1 & (rdidx_r[i] == disp_i_rdidx_1 );
-        assign rd_match_rs1idx_1[i]    = vld_r[i] & rdwen_r[i] & disp_i_rs1en_1 & (rdidx_r[i] == disp_i_rs1idx_1);
-        assign rd_match_rs2idx_1[i]    = vld_r[i] & rdwen_r[i] & disp_i_rs2en_1 & (rdidx_r[i] == disp_i_rs2idx_1);
 
       end//}
   endgenerate//}
@@ -197,12 +174,6 @@ module e203_exu_oitf (
   assign oitfrd_match_disprs3 = |rd_match_rs3idx;
   assign oitfrd_match_disprd  = |rd_match_rdidx ;
 
-  assign oitfrd_match_disprs1_1    = |rd_match_rs1idx_1;
-  assign oitfrd_match_disprs2_1    = |rd_match_rs2idx_1;
-  assign oitfrd_match_disprdren    = |rd_match_rdrenidx;
-  assign oitfrd_match_disprdren_1  = |rd_match_rdrenidx_1;
-  assign oitfrd_match_disprdwen    = |rd_match_rdwenidx;
-  assign oitfrd_match_disprdwen_1  = |rd_match_rdwenidx_1;
 
 
   assign ret_rdidx = rdidx_r[ret_ptr];
